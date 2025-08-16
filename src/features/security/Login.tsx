@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { supabase, signInWithGoogle } from "../../core/services/supabase";
 
@@ -30,9 +29,8 @@ const Login: React.FC = () => {
   };
 
   return (
-  <div className="flex w-full min-h-screen">
-      {/* Formulario - Izquierda */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center bg-white border-r border-gray-200 shadow-sm px-8 py-12">
+    <div className="flex flex-1 w-full items-center justify-center bg-gray-50">
+      <div className="w-full md:w-2/4 bg-white shadow-sm border border-gray-200 rounded px-8 py-12 flex flex-col justify-center">
         <h2 className="text-3xl font-black mb-6 text-gray-900 tracking-widest text-center">Iniciar sesión</h2>
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
@@ -83,15 +81,6 @@ const Login: React.FC = () => {
             Ingresar con Google
           </button>
         </div>
-      </div>
-      {/* Imagen - Derecha */}
-      <div className="hidden md:flex md:w-1/2 bg-gray-100 relative">
-        <img
-          src="https://images.unsplash.com/photo-1519125323398-675f0ddb6308?auto=format&fit=crop&w=800&q=80"
-          alt="Login visual"
-          className="w-full h-full object-cover"
-          style={{ minHeight: '100%', height: '100%' }}
-        />
       </div>
     </div>
   );
