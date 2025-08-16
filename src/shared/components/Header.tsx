@@ -1,0 +1,176 @@
+import React, { useEffect, useState } from "react";
+import { useSupabaseAuth } from "../../core/services/useSupabaseAuth";
+import { signOut, supabase } from "../../core/services/supabase";
+import { MdMenu, MdShoppingCart, MdLogout, MdClose, MdOutlinePerson, MdLogin, MdListAlt } from "react-icons/md";
+import { FaUserCircle } from "react-icons/fa";
+
+const Header: React.FC = () => {
+  const { session } = useSupabaseAuth();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [profile, setProfile] = useState<{ avatar_url: string | null; full_name: string | null } | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (session?.user?.id) {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('avatar_url, full_name')
+          .eq('id', session.user.id)
+          .single();
+        if (!error && data) {
+          setProfile({
+            avatar_url: data.avatar_url,
+            full_name: data.full_name,
+          });
+        } else {
+          setProfile({ avatar_url: null, full_name: null });
+        }
+      } else {
+        setProfile(null);
+      }
+    };
+    fetchProfile();
+  }, [session]);
+
+  const handleLogout = async () => {
+    await signOut();
+  };
+
+  return (
+    <>
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40 h-16">
+        <div className="w-full h-full flex items-stretch justify-between">
+          {/* Botón menú móvil */}
+          <div className="md:hidden h-full flex items-center">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="h-full flex items-center rounded-full text-gray-700 hover:bg-gray-100 transition"
+              aria-label="Abrir menú"
+              type="button"
+            >
+              <MdMenu className="size-6" />
+            </button>
+          </div>
+          {/* Logo */}
+          <div className="flex-1 flex justify-center md:justify-start h-full items-center">
+            <a
+              href="/home"
+              className="font-black text-3xl tracking-widest text-gray-900 hover:text-green-600 transition-all select-none h-full flex items-center"
+              aria-label="Inicio MOBA RENTING"
+            >
+              MOBA RENTING
+            </a>
+          </div>
+          {/* Iconos de usuario y acciones + login/register */}
+          <nav className="flex items-center gap-2 sm:gap-4 h-full" aria-label="Usuario">
+            <a
+              href="/cart"
+              className="hidden md:flex rounded-full hover:bg-gray-100 transition h-full items-center"
+              aria-label="Carrito"
+            >
+              <MdShoppingCart className="h-7 w-7 text-gray-700" />
+            </a>
+            <a
+              href="/orders"
+              className="hidden md:flex rounded-full hover:bg-gray-100 transition h-full items-center"
+              aria-label="Órdenes"
+            >
+              <MdListAlt className="h-7 w-7 text-gray-700" />
+            </a>
+            {session ? (
+              <>
+                <div className="flex items-center gap-2">
+                  {profile?.avatar_url ? (
+                    <img
+                      src={profile.avatar_url}
+                      alt="Avatar"
+                      className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
+                    />
+                  ) : (
+                    <FaUserCircle className="w-8 h-8 text-gray-400" />
+                  )}
+                  <span className="font-semibold text-gray-700 text-sm truncate max-w-[120px]">
+                    {profile?.full_name || "User"}
+                  </span>
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="rounded-full hover:bg-gray-100 transition h-full flex items-center"
+                  aria-label="Cerrar sesión"
+                  type="button"
+                >
+                  <MdLogout className="size-6 text-gray-700" />
+                </button>
+              </>
+            ) : (
+              <>
+                <a
+                  href="/login"
+                  className="flex items-center gap-1 rounded-full hover:bg-gray-100 transition h-full flex items-center"
+                  aria-label="Iniciar sesión"
+                >
+                  <MdOutlinePerson className="size-6 text-gray-700" />
+                  <span className="font-semibold text-gray-700">Iniciar sesión</span>
+                </a>
+                <a
+                  href="/register"
+                  className="flex items-center gap-1 rounded-full hover:bg-gray-100 transition h-full flex items-center"
+                  aria-label="Registrarse"
+                >
+                  <MdLogin className="size-6 text-gray-700" />
+                  <span className="font-semibold text-gray-700">Registrarse</span>
+                </a>
+              </>
+            )}
+          </nav>
+        </div>
+      </header>
+      {/* Sidebar móvil */}
+      <div
+        className={`fixed inset-0 z-50 md:hidden transition-opacity duration-300 ${
+          isSidebarOpen
+            ? "bg-black bg-opacity-50"
+            : "bg-opacity-0 pointer-events-none"
+        }`}
+        onClick={() => setIsSidebarOpen(false)}
+      >
+        <div
+          className={`fixed top-0 left-0 h-full w-72 bg-white shadow-xl transform transition-transform duration-300 ease-in-out ${
+            isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex justify-between items-center border-b h-16">
+            <h2 className="font-bold text-lg">Menú</h2>
+            <button
+              onClick={() => setIsSidebarOpen(false)}
+              className="p-2 rounded-md hover:bg-gray-100 flex items-center"
+              type="button"
+              aria-label="Cerrar menú"
+            >
+              <MdClose className="size-6" />
+            </button>
+          </div>
+          <div className="mt-8 pt-4 border-t border-gray-200">
+            <a
+              href="/cart"
+              className="flex items-center gap-3 py-3 px-2 rounded-md hover:bg-gray-100 transition-colors"
+            >
+              <MdShoppingCart className="size-6 text-gray-700" />
+              <span className="font-semibold text-gray-800">Carrito</span>
+            </a>
+            <a
+              href="/orders"
+              className="flex items-center gap-3 py-3 px-2 rounded-md hover:bg-gray-100 transition-colors"
+            >
+              <MdListAlt className="size-6 text-gray-700" />
+              <span className="font-semibold text-gray-800">Órdenes</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+};
+
+export default Header;
