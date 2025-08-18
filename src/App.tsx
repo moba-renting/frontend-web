@@ -5,6 +5,7 @@ import Register from "./features/security/Register";
 import Login from "./features/security/Login";
 import ForgotPassword from "./features/security/ForgotPassword";
 import ResetPassword from "./features/security/ResetPassword";
+import HomePage from "./features/home/pages/HomePage";
 
 export default function App() {
   const { loading } = useSupabaseAuth();
@@ -20,12 +21,7 @@ export default function App() {
       <Header />
       <div className="flex-1 flex flex-col">
         <Routes>
-          <Route
-            path="/home"
-            element={
-              <h1 className="text-3xl font-bold underline">Hello world!</h1>
-            }
-          />
+          <Route path="/home" element={<HomePage />} />
           <Route path="/register" element={<Register />} />
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

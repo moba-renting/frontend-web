@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useSupabaseAuth } from "../../core/services/useSupabaseAuth";
 import { signOut, supabase } from "../../core/services/supabase";
-import { MdMenu, MdShoppingCart, MdLogout, MdClose, MdOutlinePerson, MdLogin, MdListAlt } from "react-icons/md";
+import { MdMenu, MdLogout, MdClose, MdOutlinePerson, MdLogin, MdDirectionsCar } from "react-icons/md";
 import { FaUserCircle } from "react-icons/fa";
 
 const Header: React.FC = () => {
@@ -55,28 +55,14 @@ const Header: React.FC = () => {
           <div className="flex-1 flex justify-center md:justify-start h-full items-center">
             <a
               href="/home"
-              className="font-black text-3xl tracking-widest text-gray-900 hover:text-green-600 transition-all select-none h-full flex items-center"
-              aria-label="Inicio MOBA RENTING"
+              className="font-black text-3xl tracking-widest text-gray-900 hover:text-green-600 transition-all select-none h-full flex items-center gap-2"
+              aria-label="Inicio MOBA"
             >
-              MOBA RENTING
+              <MdDirectionsCar className="text-4xl" /> MOBA
             </a>
           </div>
           {/* Iconos de usuario y acciones + login/register */}
           <nav className="flex items-center gap-2 sm:gap-4 h-full" aria-label="Usuario">
-            <a
-              href="/cart"
-              className="hidden md:flex rounded-full hover:bg-gray-100 transition h-full items-center"
-              aria-label="Carrito"
-            >
-              <MdShoppingCart className="h-7 w-7 text-gray-700" />
-            </a>
-            <a
-              href="/orders"
-              className="hidden md:flex rounded-full hover:bg-gray-100 transition h-full items-center"
-              aria-label="Órdenes"
-            >
-              <MdListAlt className="h-7 w-7 text-gray-700" />
-            </a>
             {session ? (
               <>
                 <div className="flex items-center gap-2">
@@ -152,20 +138,6 @@ const Header: React.FC = () => {
             </button>
           </div>
           <div className="mt-8 pt-4 border-t border-gray-200">
-            <a
-              href="/cart"
-              className="flex items-center gap-3 py-3 px-2 rounded-md hover:bg-gray-100 transition-colors"
-            >
-              <MdShoppingCart className="size-6 text-gray-700" />
-              <span className="font-semibold text-gray-800">Carrito</span>
-            </a>
-            <a
-              href="/orders"
-              className="flex items-center gap-3 py-3 px-2 rounded-md hover:bg-gray-100 transition-colors"
-            >
-              <MdListAlt className="size-6 text-gray-700" />
-              <span className="font-semibold text-gray-800">Órdenes</span>
-            </a>
           </div>
         </div>
       </div>
