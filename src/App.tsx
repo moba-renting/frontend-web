@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useSupabaseAuth } from "./core/services/useSupabaseAuth";
 import Header from "./shared/components/Header";
+import Footer from "./shared/components/Footer";
 import Register from "./features/security/Register";
 import Login from "./features/security/Login";
 import ForgotPassword from "./features/security/ForgotPassword";
@@ -30,6 +31,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/home" replace />} />
         </Routes>
       </div>
+      <Footer />
     </div>
   );
 }

@@ -38,7 +38,7 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <header className="bg-brand-white border-b border-gray-200 shadow-sm sticky top-0 z-40 h-16">
+      <header className="bg-brand-white/80 border-b border-gray-200 shadow-sm sticky top-0 z-40 h-16">
         <div className="w-full h-full flex items-stretch justify-between">
           {/* Botón menú móvil */}
           <div className="md:hidden h-full flex items-center">
