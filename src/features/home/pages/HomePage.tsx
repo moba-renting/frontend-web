@@ -14,21 +14,33 @@ interface HomePageConfig {
 
 interface Car {
   id: number;
-  price: number;
+  vehicle_price: number;
+  maintenance_price: number;
+  soat_price: number;
+  auto_parts_price: number;
+  insurance_price: number;
   image_urls: string[];
   mileage: number;
   year: number;
   fuel: string;
   edition: string;
-  color: string;
   traction: string;
   condition: string;
   transmission: string;
+  dealership_authorization: boolean;
+  insurance_authorization: boolean;
   model: {
     name: string;
     brand: {
       name: string;
     };
+  };
+  dealership: {
+    name: string;
+  };
+  gps: {
+    name: string;
+    price: number;
   };
 }
 
@@ -71,10 +83,11 @@ const HomePage: React.FC = () => {
         if (configError) throw configError;
         setConfig(configData);
 
-        // Fetch brands ordered by sort_order
+        // Fetch brands ordered by sort_order (only active brands)
         const { data: brandsData, error: brandsError } = await supabase
           .from('brands')
           .select('*')
+          .eq('is_active', true)
           .order('sort_order');
 
         if (brandsError) throw brandsError;
@@ -88,8 +101,12 @@ const HomePage: React.FC = () => {
             model:models(
               name,
               brand:brands(name)
-            )
+            ),
+            dealership:dealerships(name),
+            gps(name, price)
           `)
+          .eq('dealership_authorization', true)
+          .eq('insurance_authorization', true)
           .limit(4);
 
         if (carsError) throw carsError;
@@ -118,6 +135,7 @@ const HomePage: React.FC = () => {
           .from('models')
           .select('*')
           .eq('brand_id', filters.marca)
+          .eq('is_active', true)
           .order('sort_order');
 
         if (modelsError) throw modelsError;
@@ -150,6 +168,10 @@ const HomePage: React.FC = () => {
 
   const formatPrice = (price: number) => {
     return `S/ ${price.toLocaleString()}`;
+  };
+
+  const calculateTotalPrice = (car: Car) => {
+    return car.vehicle_price + car.maintenance_price + car.soat_price + car.auto_parts_price + car.insurance_price + car.gps.price;
   };
 
   if (loading) {
@@ -257,10 +279,16 @@ const HomePage: React.FC = () => {
                   <h3 className="font-bold text-lg text-gray-900 mb-1">
                     {car.model?.brand?.name} {car.model?.name}
                   </h3>
-                  <p className="text-gray-600 text-sm mb-3">
-                    {formatPrice(car.price)} al mes
+                  <p className="text-gray-500 text-xs mb-1">
+                    {car.year} • {car.condition} • {car.fuel}
                   </p>
-                  <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 py-2 px-4 rounded-md font-semibold transition-colors">
+                  <p className="text-gray-600 text-sm mb-2">
+                    {car.mileage.toLocaleString()} km • {car.transmission}
+                  </p>
+                  <p className="text-green-600 font-bold text-lg mb-3">
+                    {formatPrice(calculateTotalPrice(car))} al mes
+                  </p>
+                  <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-semibold transition-colors">
                     Solicitar Crédito
                   </button>
                 </div>
