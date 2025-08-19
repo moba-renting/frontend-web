@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { supabase } from "../../../core/services/supabase";
+import heroBg from "../../../assets/images/portada.png";
 
 interface HomePageConfig {
   hero_banner_url: string;
@@ -165,7 +166,7 @@ const HomePage: React.FC = () => {
       <section className="relative w-full h-96 bg-gray-900">
         {config?.hero_banner_url && (
           <img
-            src={config.hero_banner_url}
+            src={heroBg}
             alt="Hero Banner"
             className="w-full h-full object-cover"
           />

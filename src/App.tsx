@@ -17,7 +17,7 @@ export default function App() {
     );
   }
   return (
-    <div className="min-h-screen flex flex-col px-2 md:px-8">
+    <div className="min-h-screen w-full flex flex-col">
       <Header />
       <div className="flex-1 flex flex-col">
         <Routes>
