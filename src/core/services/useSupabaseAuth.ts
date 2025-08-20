@@ -144,7 +144,7 @@ class AuthStore {
 const authStore = new AuthStore();
 
 // Hook principal para usar autenticación
-export function useSupabaseAuth() {
+export function UseSupabaseAuth() {
   // Sincronizar con el store externo
   const state = useSyncExternalStore(
     (listener) => authStore.subscribe(listener),
@@ -166,4 +166,4 @@ export function useSupabaseAuth() {
     isAdmin,
     isCustomer
   };
-}
+} 

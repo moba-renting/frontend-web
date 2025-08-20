@@ -1,36 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { useSupabaseAuth } from "../../core/services/useSupabaseAuth";
-import { signOut, supabase } from "../../core/services/supabase";
+import React, { useState } from "react";
+import { signOut } from "../../core/services/supabase";
 import { MdMenu, MdLogout, MdClose, MdOutlinePerson, MdLogin, MdDirectionsCar } from "react-icons/md";
 import { FaUserCircle } from "react-icons/fa";
+import { UseSupabaseAuth } from "../../core/services/UseSupabaseAuth";
 
 const Header: React.FC = () => {
-  const { session } = useSupabaseAuth();
+  const { session, profile } = UseSupabaseAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [profile, setProfile] = useState<{ avatar_url: string | null; full_name: string | null } | null>(null);
-
-  useEffect(() => {
-    const fetchProfile = async () => {
-      if (session?.user?.id) {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('avatar_url, full_name')
-          .eq('id', session.user.id)
-          .single();
-        if (!error && data) {
-          setProfile({
-            avatar_url: data.avatar_url,
-            full_name: data.full_name,
-          });
-        } else {
-          setProfile({ avatar_url: null, full_name: null });
-        }
-      } else {
-        setProfile(null);
-      }
-    };
-    fetchProfile();
-  }, [session]);
 
   const handleLogout = async () => {
     await signOut();
@@ -38,7 +14,7 @@ const Header: React.FC = () => {
 
   return (
     <>
-      <header className="bg-brand-white/80 border-b border-gray-200 shadow-sm sticky top-0 z-40 h-16">
+      <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40 h-16">
         <div className="w-full h-full flex items-stretch justify-between">
           {/* Botón menú móvil */}
           <div className="md:hidden h-full flex items-center">
@@ -55,7 +31,7 @@ const Header: React.FC = () => {
           <div className="flex-1 flex justify-center md:justify-start h-full items-center">
             <a
               href="/home"
-              className="font-primary text-2xl tracking-widest text-brand-greenMint transition-all select-none h-full flex items-center gap-2"
+              className="font-black text-3xl tracking-widest text-gray-900 hover:text-green-600 transition-all select-none h-full flex items-center gap-2"
               aria-label="Inicio MOBA"
             >
               <MdDirectionsCar className="text-4xl" /> MOBA
@@ -70,33 +46,41 @@ const Header: React.FC = () => {
                     <img
                       src={profile.avatar_url}
                       alt="Avatar"
-                      className="w-8 h-8 rounded-full object-cover border-2 border-brand-greenMint"
+                      className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
                     />
                   ) : (
-                    <FaUserCircle className="w-8 h-8 text-brand-white" />
+                    <FaUserCircle className="w-8 h-8 text-gray-400" />
                   )}
-                  <span className="font-secondary text-brand-greenMint text-sm truncate max-w-[120px]">
-                    {profile?.full_name || "User"}
+                  <span className="font-semibold text-gray-700 text-sm truncate max-w-[120px]">
+                    {profile?.full_name}
                   </span>
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="rounded-full hover:bg-brand-greenMint transition h-full flex items-center"
+                  className="rounded-full hover:bg-gray-100 transition h-full flex items-center"
                   aria-label="Cerrar sesión"
                   type="button"
                 >
-                  <MdLogout className="size-6 text-brand-greenMint" />
+                  <MdLogout className="size-6 text-gray-700" />
                 </button>
               </>
             ) : (
               <>
                 <a
                   href="/login"
-                  className="flex items-center gap-1 rounded-full transition h-full flex items-center md:pr-8"
+                  className="flex items-center gap-1 rounded-full hover:bg-gray-100 transition h-full flex items-center"
                   aria-label="Iniciar sesión"
                 >
-                  <MdOutlinePerson className="size-6 text-brand-greenMint" />
-                  <span className="font-semibold text-brand-greenMint">Iniciar sesión</span>
+                  <MdOutlinePerson className="size-6 text-gray-700" />
+                  <span className="font-semibold text-gray-700">Iniciar sesión</span>
+                </a>
+                <a
+                  href="/register"
+                  className="flex items-center gap-1 rounded-full hover:bg-gray-100 transition h-full flex items-center"
+                  aria-label="Registrarse"
+                >
+                  <MdLogin className="size-6 text-gray-700" />
+                  <span className="font-semibold text-gray-700">Registrarse</span>
                 </a>
               </>
             )}
