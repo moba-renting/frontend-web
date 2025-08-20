@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { supabase } from "../../core/services/supabase";
+import { supabase } from "../../../core/services/supabase";
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");

@@ -1,9 +1,9 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Header from "./shared/pages/Header";
-import Register from "./features/security/Register";
-import Login from "./features/security/Login";
-import ForgotPassword from "./features/security/ForgotPassword";
-import ResetPassword from "./features/security/ResetPassword";
+import Register from "./features/security/pages/Register";
+import Login from "./features/security/pages/Login";
+import ForgotPassword from "./features/security/pages/ForgotPassword";
+import ResetPassword from "./features/security/pages/ResetPassword";
 import HomePage from "./features/home/pages/HomePage";
 import VehiclesListPage from "./features/vehicles/pages/VehiclesListPage";
 import { UseSupabaseAuth } from "./core/services/UseSupabaseAuth";
