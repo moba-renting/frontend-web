@@ -7,6 +7,11 @@ import ForgotPassword from "./features/security/pages/ForgotPassword";
 import ResetPassword from "./features/security/pages/ResetPassword";
 import HomePage from "./features/home/pages/HomePage";
 import VehiclesListPage from "./features/vehicles/pages/VehiclesListPage";
+import AdminLayout from "./features/admin/layout/AdminLayout";
+import AdminDashboard from "./features/admin/pages/AdminDashboard";
+import AdminHomePage from "./features/admin/pages/AdminHomePage";
+import AdminSettings from "./features/admin/pages/AdminSettings";
+import ProtectedRoute from "./features/admin/components/ProtectedRoute";
 import { UseSupabaseAuth } from "./core/services/UseSupabaseAuth";
 
 export default function App() {
@@ -22,20 +27,38 @@ export default function App() {
   }
   return (
     <div className="min-h-screen w-full flex flex-col">
-      <Header />
-      <div className="flex-1 flex flex-col">
-        <Routes>
-          <Route path="/home" element={<HomePage />} />
-          <Route path="/vehicles" element={<VehiclesListPage />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/" element={<Navigate to="/home" replace />} />
-          <Route path="*" element={<Navigate to="/home" replace />} />
-        </Routes>
-      </div>
-      <Footer />
+      <Routes>
+        {/* Rutas de administración */}
+        <Route path="/admin/*" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }>
+          <Route index element={<AdminDashboard />} />
+          <Route path="home-config" element={<AdminHomePage />} />
+          <Route path="settings" element={<AdminSettings />} />
+        </Route>
+
+        {/* Rutas públicas */}
+        <Route path="/*" element={
+          <>
+            <Header />
+            <div className="flex-1 flex flex-col">
+              <Routes>
+                <Route path="/home" element={<HomePage />} />
+                <Route path="/vehicles" element={<VehiclesListPage />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/" element={<Navigate to="/home" replace />} />
+                <Route path="*" element={<Navigate to="/home" replace />} />
+              </Routes>
+            </div>
+            <Footer />
+          </>
+        } />
+      </Routes>
     </div>
   );
 }

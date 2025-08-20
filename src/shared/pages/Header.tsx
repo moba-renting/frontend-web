@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import { signOut } from "../../core/services/supabase";
-import { MdMenu, MdLogout, MdClose, MdOutlinePerson, MdLogin, MdDirectionsCar } from "react-icons/md";
+import { MdMenu, MdLogout, MdClose, MdOutlinePerson, MdLogin, MdDirectionsCar, MdAdminPanelSettings } from "react-icons/md";
 import { FaUserCircle } from "react-icons/fa";
 import { UseSupabaseAuth } from "../../core/services/UseSupabaseAuth";
 
 const Header: React.FC = () => {
-  const { session, profile } = UseSupabaseAuth();
+  const { session, profile, isAdmin } = UseSupabaseAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
@@ -41,10 +41,20 @@ const Header: React.FC = () => {
           <nav className="flex items-center gap-2 sm:gap-4 h-full" aria-label="Usuario">
             {session ? (
               <>
+                {/* Botón de admin para administradores */}
+                {isAdmin && (
+                  <a
+                    href="/admin"
+                    className="rounded-full hover:bg-gray-100 transition h-full flex items-center px-2"
+                    aria-label="Panel de administración"
+                  >
+                    <MdAdminPanelSettings className="size-6 text-gray-700" />
+                  </a>
+                )}
                 <div className="flex items-center gap-2">
-                  {profile?.avatar_url ? (
+                  {profile?.avatar_url || session.user.user_metadata?.avatar_url ? (
                     <img
-                      src={profile.avatar_url}
+                      src={profile?.avatar_url || session.user.user_metadata?.avatar_url}
                       alt="Avatar"
                       className="w-8 h-8 rounded-full object-cover border-2 border-gray-200"
                     />
@@ -52,7 +62,7 @@ const Header: React.FC = () => {
                     <FaUserCircle className="w-8 h-8 text-gray-400" />
                   )}
                   <span className="font-semibold text-gray-700 text-sm truncate max-w-[120px]">
-                    {profile?.full_name}
+                    {profile?.full_name || session.user.user_metadata?.full_name || session.user.email}
                   </span>
                 </div>
                 <button
