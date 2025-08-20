@@ -1,5 +1,4 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { useSupabaseAuth } from "./core/services/useSupabaseAuth";
 import Header from "./shared/components/Header";
 import Footer from "./shared/components/Footer";
 import Register from "./features/security/Register";
@@ -8,10 +7,10 @@ import ForgotPassword from "./features/security/ForgotPassword";
 import ResetPassword from "./features/security/ResetPassword";
 import HomePage from "./features/home/pages/HomePage";
 import VehiclesListPage from "./features/vehicles/pages/VehiclesListPage";
-import { UseSupabaseAuth } from "./core/services/UseSupabaseAuth";
+import { useSupabaseAuth } from "./core/services/useSupabaseAuth";
 
 export default function App() {
-  const { initializing } = UseSupabaseAuth();
+  const { initializing } = useSupabaseAuth();
   
   // Esperar a que termine la inicialización
   if (initializing) {

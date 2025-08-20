@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../core/services/supabase";
 import heroBg from "../../../assets/images/portada.png";
+import heroClientes from "../../../assets/images/moba_hero_cliente.png";
+import heroEmpresas from "../../../assets/images/moba_empresas_b.png";
 
 interface HomePageConfig {
   hero_banner_url: string;
@@ -226,17 +228,11 @@ const HomePage: React.FC = () => {
               </select>
             </div>
             {/* Botón Buscar */}
-            <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-xl font-semibold transition-colors">
+            <button 
+              onClick={handleSearch}
+              className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-xl font-semibold transition-colors">
               Buscar Vehículos
             </button>
-            <div className="flex justify-center mt-6">
-              <button 
-                onClick={handleSearch}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-md font-semibold text-lg transition-colors"
-              >
-                Buscar Vehículos
-              </button>
-            </div>
           </div>
         </div>
       </section>
@@ -281,7 +277,8 @@ const HomePage: React.FC = () => {
           <div className="relative w-full h-48 md:h-64 bg-gray-200 rounded-lg overflow-hidden mb-8">
             {config?.b2c_benefits_url && (
               <img
-                src={config.b2c_benefits_url}
+                // src={config.b2c_benefits_url} (En producción se actualiza desde el dashboard de Supabase)
+                src={heroClientes}
                 alt="Beneficios B2C"
                 className="w-full h-full object-cover"
               />
@@ -296,7 +293,8 @@ const HomePage: React.FC = () => {
           <div className="relative w-full h-48 md:h-64 bg-gray-200 rounded-lg overflow-hidden mb-8">
             {config?.b2b_benefits_url && (
               <img
-                src={config.b2b_benefits_url}
+                //src={config.b2b_benefits_url}
+                src={heroEmpresas}
                 alt="Beneficios B2B"
                 className="w-full h-full object-cover"
               />

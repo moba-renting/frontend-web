@@ -54,11 +54,11 @@ const VehicleList: React.FC<VehicleListProps> = ({
   return (
     <>
       {/* Grid de vehículos */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-6 mb-8">
         {vehicles.map((vehicle) => (
           <div
             key={vehicle.id}
-            className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+            className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg hover:border-3 hover:border-brand-greenMint transition-shadow transition-colors"
           >
             {/* Imagen */}
             <div className="aspect-w-16 aspect-h-12 bg-gray-200">
