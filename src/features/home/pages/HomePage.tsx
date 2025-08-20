@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../../../core/services/supabase";
 import heroBg from "../../../assets/images/portada.png";
 
@@ -12,36 +13,11 @@ interface HomePageConfig {
   }>;
 }
 
-interface Car {
+interface Category {
   id: number;
-  vehicle_price: number;
-  maintenance_price: number;
-  soat_price: number;
-  auto_parts_price: number;
-  insurance_price: number;
-  image_urls: string[];
-  mileage: number;
-  year: number;
-  fuel: string;
-  edition: string;
-  traction: string;
-  condition: string;
-  transmission: string;
-  dealership_authorization: boolean;
-  insurance_authorization: boolean;
-  model: {
-    name: string;
-    brand: {
-      name: string;
-    };
-  };
-  dealership: {
-    name: string;
-  };
-  gps: {
-    name: string;
-    price: number;
-  };
+  name: string;
+  image_url: string;
+  sort_order: number;
 }
 
 interface Brand {
@@ -58,8 +34,9 @@ interface Model {
 }
 
 const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [config, setConfig] = useState<HomePageConfig | null>(null);
-  const [cars, setCars] = useState<Car[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
@@ -93,24 +70,15 @@ const HomePage: React.FC = () => {
         if (brandsError) throw brandsError;
         setBrands(brandsData || []);
 
-        // Fetch featured cars (limit to 4 for the grid)
-        const { data: carsData, error: carsError } = await supabase
-          .from('cars')
-          .select(`
-            *,
-            model:models(
-              name,
-              brand:brands(name)
-            ),
-            dealership:dealerships(name),
-            gps(name, price)
-          `)
-          .eq('dealership_authorization', true)
-          .eq('insurance_authorization', true)
-          .limit(4);
+        // Fetch categories ordered by sort_order (only active categories)
+        const { data: categoriesData, error: categoriesError } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('is_active', true)
+          .order('sort_order');
 
-        if (carsError) throw carsError;
-        setCars(carsData || []);
+        if (categoriesError) throw categoriesError;
+        setCategories(categoriesData || []);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -166,12 +134,26 @@ const HomePage: React.FC = () => {
     });
   };
 
-  const formatPrice = (price: number) => {
-    return `S/ ${price.toLocaleString()}`;
+  // Navegar a la página de vehículos con filtros
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    
+    if (filters.condicion) {
+      params.set('condition', filters.condicion);
+    }
+    if (filters.marca) {
+      params.set('brand_id', filters.marca);
+    }
+    if (filters.modelo) {
+      params.set('model_id', filters.modelo);
+    }
+    
+    navigate(`/vehicles?${params.toString()}`);
   };
 
-  const calculateTotalPrice = (car: Car) => {
-    return car.vehicle_price + car.maintenance_price + car.soat_price + car.auto_parts_price + car.insurance_price + car.gps.price;
+  // Navegar a la página de vehículos por categoría
+  const handleCategoryClick = (categoryId: number) => {
+    navigate(`/vehicles?category_id=${categoryId}`);
   };
 
   if (loading) {
@@ -247,6 +229,14 @@ const HomePage: React.FC = () => {
             <button className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-xl font-semibold transition-colors">
               Buscar Vehículos
             </button>
+            <div className="flex justify-center mt-6">
+              <button 
+                onClick={handleSearch}
+                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-md font-semibold text-lg transition-colors"
+              >
+                Buscar Vehículos
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -255,46 +245,29 @@ const HomePage: React.FC = () => {
       <section className="bg-gray-50 py-12">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">
-            Categorías Destacadas
+            Categorías de Vehículos
           </h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {cars.map((car) => (
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+            {categories.map((category) => (
               <div
-                key={car.id}
-                className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
+                key={category.id}
+                onClick={() => handleCategoryClick(category.id)}
+                className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
               >
-                {/* Imagen del auto */}
-                <div className="aspect-w-16 aspect-h-12 bg-gray-200">
-                  {car.image_urls && car.image_urls.length > 0 ? (
-                    <img
-                      src={car.image_urls[0]}
-                      alt={`${car.model?.brand?.name} ${car.model?.name}`}
-                      className="w-full h-48 object-cover"
-                    />
-                  ) : (
-                    <div className="w-full h-48 bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-500 text-sm">Auto {car.id}</span>
-                    </div>
-                  )}
+                {/* Imagen de la categoría */}
+                <div className="aspect-square bg-gray-200">
+                  <img
+                    src={category.image_url}
+                    alt={category.name}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 
-                {/* Información del auto */}
-                <div className="p-4">
-                  <h3 className="font-bold text-lg text-gray-900 mb-1">
-                    {car.model?.brand?.name} {car.model?.name}
+                {/* Nombre de la categoría */}
+                <div className="p-3 text-center">
+                  <h3 className="font-semibold text-sm text-gray-900">
+                    {category.name}
                   </h3>
-                  <p className="text-gray-500 text-xs mb-1">
-                    {car.year} • {car.condition} • {car.fuel}
-                  </p>
-                  <p className="text-gray-600 text-sm mb-2">
-                    {car.mileage.toLocaleString()} km • {car.transmission}
-                  </p>
-                  <p className="text-green-600 font-bold text-lg mb-3">
-                    {formatPrice(calculateTotalPrice(car))} al mes
-                  </p>
-                  <button className="w-full bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-md font-semibold transition-colors">
-                    Solicitar Crédito
-                  </button>
                 </div>
               </div>
             ))}
