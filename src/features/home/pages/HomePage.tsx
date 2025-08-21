@@ -128,7 +128,7 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
 
     const interval = setInterval(() => {
       setCurrentIndex((prevIndex) =>
-        (prevIndex + 1) % config.hero_banner_urls.length
+        (prevIndex + 1) % (config?.hero_banner_urls?.length || 1)
       );
     }, 5000);
 
@@ -200,14 +200,14 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
           )}
 
           {/* Botón anterior */}
-          {config?.hero_banner_urls?.length > 1 && (
+          {config?.hero_banner_urls?.length && config.hero_banner_urls.length > 1 && (
             <>
               <button
                 onClick={() =>
               setCurrentIndex(
                 (prev) =>
-                  (prev - 1 + config.hero_banner_urls.length) %
-                  config.hero_banner_urls.length
+                  (prev - 1 + (config?.hero_banner_urls?.length || 0)) %
+                  (config?.hero_banner_urls?.length || 1)
               )
             }
             className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 rounded-full"
@@ -219,7 +219,7 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
           <button
             onClick={() =>
               setCurrentIndex(
-                (prev) => (prev + 1) % config.hero_banner_urls.length
+                (prev) => (prev + 1) % (config?.hero_banner_urls?.length || 1)
               )
             }
             className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-4 rounded-full"
@@ -328,7 +328,7 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
           <div className="relative w-full h-48 md:h-64 bg-gray-200 rounded-lg overflow-hidden mb-8">
             {config?.b2c_benefits_url && (
               <img
-                src={config.b2c_benefits_url || heroClientes}
+                src={config?.b2c_benefits_url || heroClientes}
                 alt="Beneficios B2C"
                 className="w-full h-full object-cover"
               />
@@ -343,7 +343,7 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
           <div className="relative w-full h-48 md:h-64 bg-gray-200 rounded-lg overflow-hidden mb-8">
             {config?.b2b_benefits_url && (
               <img
-                src={config.b2b_benefits_url || heroEmpresas}
+                src={config?.b2b_benefits_url || heroEmpresas}
                 alt="Beneficios B2B"
                 className="w-full h-full object-cover"
               />
@@ -405,7 +405,7 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
             Preguntas Frecuentes
           </h2>
           <div className="space-y-4">
-            {config?.faqs.map((faq, index) => (
+            {config?.faqs?.map((faq, index) => (
               <div
                 key={index}
                 className="bg-white rounded-lg border border-gray-200 p-6"
