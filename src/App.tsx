@@ -7,6 +7,7 @@ import ForgotPassword from "./features/security/pages/ForgotPassword";
 import ResetPassword from "./features/security/pages/ResetPassword";
 import HomePage from "./features/home/pages/HomePage";
 import VehiclesListPage from "./features/vehicles/pages/VehiclesListPage";
+import VehicleDetailPage from "./features/vehicles/pages/VehicleDetailPage";
 import AdminLayout from "./features/admin/layout/AdminLayout";
 import AdminDashboard from "./features/admin/pages/AdminDashboard";
 import AdminHomePage from "./features/admin/pages/AdminHomePage";
@@ -47,6 +48,7 @@ export default function App() {
               <Routes>
                 <Route path="/home" element={<HomePage />} />
                 <Route path="/vehicles" element={<VehiclesListPage />} />
+                <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />

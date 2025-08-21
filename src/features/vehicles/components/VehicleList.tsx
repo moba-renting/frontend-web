@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import type { Vehicle, Filters } from "../types";
 
@@ -21,9 +22,16 @@ const VehicleList: React.FC<VehicleListProps> = ({
   onPageChange,
   onClearFilters,
 }) => {
+  const navigate = useNavigate();
+
   // Formatear precio
   const formatPrice = (price: number) => {
     return `S/ ${price.toLocaleString()}`;
+  };
+
+  // Navegar a la página de detalle
+  const handleViewDetails = (vehicleId: number) => {
+    navigate(`/vehicles/${vehicleId}`);
   };
 
   if (loadingVehicles) {
@@ -58,7 +66,8 @@ const VehicleList: React.FC<VehicleListProps> = ({
         {vehicles.map((vehicle) => (
           <div
             key={vehicle.id}
-            className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg hover:border-3 hover:border-brand-greenMint transition-shadow transition-colors"
+            className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg hover:border-3 hover:border-brand-greenMint transition-shadow transition-colors cursor-pointer"
+            onClick={() => handleViewDetails(vehicle.id)}
           >
             {/* Imagen */}
             <div className="aspect-w-16 aspect-h-12 bg-gray-200">
@@ -88,7 +97,13 @@ const VehicleList: React.FC<VehicleListProps> = ({
                 <span className="text-2xl font-bold text-green-600">
                   {formatPrice(vehicle.precio)}
                 </span>
-                <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleViewDetails(vehicle.id);
+                  }}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                >
                   Ver detalles
                 </button>
               </div>

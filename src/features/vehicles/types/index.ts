@@ -10,6 +10,27 @@ export interface Vehicle {
   precio: number;
 }
 
+export interface VehicleDetail extends Vehicle {
+  marca: string;
+  modelo: string;
+  year: number;
+  color: string;
+  plazas: number;
+  cilindrada: string;
+  potencia: string;
+  traccion: string;
+  condicion: string;
+  categoria: string;
+  descripcion?: string;
+  caracteristicas?: string[];
+  equipamiento?: string[];
+  concesionario?: {
+    nombre: string;
+    telefono: string;
+    direccion: string;
+  };
+}
+
 export interface FilterOption {
   id?: number;
   name: string;
