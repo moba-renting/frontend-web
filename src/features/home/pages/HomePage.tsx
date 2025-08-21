@@ -6,7 +6,7 @@ import heroClientes from "../../../assets/images/moba_hero_cliente.png";
 import heroEmpresas from "../../../assets/images/moba_empresas_b.png";
 
 interface HomePageConfig {
-  hero_banner_url: string;
+  hero_banner_urls: string[];
   b2b_benefits_url: string;
   b2c_benefits_url: string;
   faqs: Array<{
@@ -48,6 +48,8 @@ const HomePage: React.FC = () => {
     marca: "",
     modelo: ""
   });
+
+const [currentIndex, setCurrentIndex] = useState(0); // state to track the current index of the hero banner
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,6 +122,19 @@ const HomePage: React.FC = () => {
     fetchModels();
   }, [filters.marca]);
 
+  // Change image in hero banner every 5 seconds
+  useEffect(() => {
+    if (!config?.hero_banner_urls || config.hero_banner_urls.length === 0) return;
+
+    const interval = setInterval(() => {
+      setCurrentIndex((prevIndex) =>
+        (prevIndex + 1) % config.hero_banner_urls.length
+      );
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [config?.hero_banner_urls]);
+
   const handleFilterChange = (filterType: string, value: string) => {
     setFilters(prev => {
       const newFilters = {
@@ -136,7 +151,7 @@ const HomePage: React.FC = () => {
     });
   };
 
-  // Navegar a la página de vehículos con filtros
+  // navigate to vehicles page with filters
   const handleSearch = () => {
     const params = new URLSearchParams();
     
@@ -170,13 +185,49 @@ const HomePage: React.FC = () => {
     <div className="flex-1 flex flex-col">
       {/* Hero Banner */}
       <section className="relative w-full h-96 bg-gray-900">
-        {config?.hero_banner_url && (
-          <img
-            src={heroBg}
-            alt="Hero Banner"
-            className="w-full h-full object-cover"
-          />
-        )}
+        {config?.hero_banner_urls?.length ? (
+        <img
+          src={config.hero_banner_urls[currentIndex]}
+          alt={`Hero Banner ${currentIndex + 1}`}
+          className="w-full h-full object-cover transition-opacity duration-1000"
+        />
+          ) : (
+            <img
+              src={heroBg}
+              alt="Hero Banner Default"
+              className="w-full h-full object-cover"
+            />
+          )}
+
+          {/* Botón anterior */}
+          {config?.hero_banner_urls?.length > 1 && (
+            <>
+              <button
+                onClick={() =>
+              setCurrentIndex(
+                (prev) =>
+                  (prev - 1 + config.hero_banner_urls.length) %
+                  config.hero_banner_urls.length
+              )
+            }
+            className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 rounded-full"
+          >
+            <span className="text-6xl leading-none">‹</span>
+          </button>
+
+          {/* Botón siguiente */}
+          <button
+            onClick={() =>
+              setCurrentIndex(
+                (prev) => (prev + 1) % config.hero_banner_urls.length
+              )
+            }
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-4 rounded-full"
+          >
+           <span className="text-6xl leading-none">›</span>
+          </button>
+            </>
+          )}
       </section>
 
       {/* Filtros para vehículos */}
@@ -277,8 +328,7 @@ const HomePage: React.FC = () => {
           <div className="relative w-full h-48 md:h-64 bg-gray-200 rounded-lg overflow-hidden mb-8">
             {config?.b2c_benefits_url && (
               <img
-                // src={config.b2c_benefits_url} (En producción se actualiza desde el dashboard de Supabase)
-                src={heroClientes}
+                src={config.b2c_benefits_url || heroClientes}
                 alt="Beneficios B2C"
                 className="w-full h-full object-cover"
               />
@@ -293,8 +343,7 @@ const HomePage: React.FC = () => {
           <div className="relative w-full h-48 md:h-64 bg-gray-200 rounded-lg overflow-hidden mb-8">
             {config?.b2b_benefits_url && (
               <img
-                //src={config.b2b_benefits_url}
-                src={heroEmpresas}
+                src={config.b2b_benefits_url || heroEmpresas}
                 alt="Beneficios B2B"
                 className="w-full h-full object-cover"
               />
