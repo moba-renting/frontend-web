@@ -34,14 +34,6 @@ const VehicleSimulator: React.FC<VehicleSimulatorProps> = ({ vehicle }) => {
     { km: 2000, label: "2000 Km", extra: "+25€/mes" }
   ];
 
-  // Configurar fecha mínima (mañana)
-  useEffect(() => {
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const dateString = tomorrow.toISOString().split('T')[0];
-    setDeliveryDate(dateString);
-  }, []);
 
   const getCurrentQuota = () => {
     const option = quotaOptions.find(opt => opt.months === selectedMonths);
@@ -60,55 +52,6 @@ const VehicleSimulator: React.FC<VehicleSimulatorProps> = ({ vehicle }) => {
 
   return (
     <div className="space-y-6">
-      {/* Información de entrega */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
-          <MdLocationOn className="w-5 h-5 text-green-600" />
-          ENTREGA
-        </h2>
-        
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <MdLocationOn className="inline w-4 h-4 mr-1" />
-              Lugar de entrega
-            </label>
-            <input
-              type="text"
-              placeholder="Ingrese dirección de entrega"
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-            />
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                <MdSchedule className="inline w-4 h-4 mr-1" />
-                Fecha
-              </label>
-              <input
-                type="date"
-                value={deliveryDate}
-                onChange={(e) => setDeliveryDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Hora
-              </label>
-              <input
-                type="time"
-                value={deliveryTime}
-                onChange={(e) => setDeliveryTime(e.target.value)}
-                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* Simulador de cuotas */}
       <div className="bg-white rounded-lg border border-gray-200 p-6">
         <h2 className="text-xl font-semibold mb-6">CUOTA Y PERMANENCIA</h2>
