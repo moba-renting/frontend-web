@@ -36,11 +36,6 @@ interface VehicleDataFromDB {
     id: number;
     name: string;
   };
-  colors: {
-    id: number;
-    name: string;
-    hex_code: string;
-  };
   gps: {
     id: number;
     name: string;
@@ -53,10 +48,20 @@ interface VehicleDataFromDB {
   };
 }
 
+// Interfaz para los colores disponibles
+interface VehicleColor {
+  color_id: number;
+  name: string;
+  hex_code: string;
+  stock_quantity: number;
+}
+
 const VehicleDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [vehicle, setVehicle] = useState<VehicleDetail | null>(null);
+  const [availableColors, setAvailableColors] = useState<VehicleColor[]>([]);
+  const [selectedColor, setSelectedColor] = useState<VehicleColor | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -102,11 +107,6 @@ const VehicleDetailPage: React.FC = () => {
               id,
               name
             ),
-            colors (
-              id,
-              name,
-              hex_code
-            ),
             gps (
               id,
               name,
@@ -134,6 +134,40 @@ const VehicleDetailPage: React.FC = () => {
           return;
         }
 
+        // Consulta separada para obtener los colores disponibles con stock
+        const { data: colorsData, error: colorsError } = await supabase
+          .from('vehicle_colors')
+          .select(`
+            color_id,
+            stock_quantity,
+            colors!inner (
+              name,
+              hex_code
+            )
+          `)
+          .eq('vehicle_id', parseInt(id))
+          .eq('colors.is_active', true)
+          .gt('stock_quantity', 0);
+
+        if (colorsError) {
+          console.error('Error fetching colors:', colorsError);
+        }
+
+        // Procesar datos de colores
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const processedColors: VehicleColor[] = (colorsData || []).map((item: any) => ({
+          color_id: item.color_id,
+          name: item.colors.name,
+          hex_code: item.colors.hex_code,
+          stock_quantity: item.stock_quantity
+        }));
+
+        setAvailableColors(processedColors);
+        
+        // Seleccionar el primer color disponible por defecto
+        const defaultColor = processedColors.length > 0 ? processedColors[0] : null;
+        setSelectedColor(defaultColor);
+
         // Transformar los datos al formato VehicleDetail
         const vehicleDetail: VehicleDetail = {
           id: vehicleData.id,
@@ -141,7 +175,7 @@ const VehicleDetailPage: React.FC = () => {
           marca: vehicleData.models.brands.name,
           modelo: vehicleData.models.name,
           year: vehicleData.year,
-          color: vehicleData.colors.name,
+          color: defaultColor ? defaultColor.name : 'Color no disponible',
           plazas: 5, // Campo no disponible en BD, se podría agregar
           cilindrada: vehicleData.edition, // Usamos el campo edition como cilindrada/versión
           potencia: `${vehicleData.fuel} Engine`, // Basado en el tipo de combustible
@@ -184,6 +218,17 @@ const VehicleDetailPage: React.FC = () => {
     navigate(-1);
   };
 
+  const handleColorChange = (color: VehicleColor) => {
+    setSelectedColor(color);
+    // Actualizar el color en el objeto vehicle
+    if (vehicle) {
+      setVehicle({
+        ...vehicle,
+        color: color.name
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -224,8 +269,71 @@ const VehicleDetailPage: React.FC = () => {
         {/* Layout principal */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Galería e información del vehículo (2/3 del ancho) */}
-          <div className="lg:col-span-2">
+          <div className="lg:col-span-2 space-y-6">
             <VehicleGallery vehicle={vehicle} />
+            
+            {/* Sección de colores disponibles */}
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
+              <h3 className="text-xl font-semibold text-gray-900 mb-4">
+                Colores Disponibles
+              </h3>
+              
+              {availableColors.length > 0 ? (
+                <>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    {availableColors.map((color) => (
+                      <div
+                        key={color.color_id}
+                        onClick={() => handleColorChange(color)}
+                        className={`cursor-pointer rounded-lg border-2 p-4 transition-all hover:shadow-md ${
+                          selectedColor?.color_id === color.color_id
+                            ? 'border-green-500 bg-green-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center space-x-3">
+                          {/* Muestra del color */}
+                          <div
+                            className="w-8 h-8 rounded-full border-2 border-gray-300 flex-shrink-0"
+                            style={{ backgroundColor: color.hex_code }}
+                          ></div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-gray-900 truncate">
+                              {color.name}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              Stock: {color.stock_quantity}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {selectedColor && (
+                    <div className="mt-4 p-3 bg-gray-50 rounded-md">
+                      <p className="text-sm text-gray-700">
+                        <span className="font-medium">Color seleccionado:</span> {selectedColor.name}
+                        <span className="ml-2 text-gray-500">
+                          (Stock disponible: {selectedColor.stock_quantity})
+                        </span>
+                      </p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center py-8">
+                  <div className="text-gray-500 mb-2">
+                    <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 rounded-full flex items-center justify-center">
+                      <div className="w-8 h-8 bg-gray-300 rounded-full"></div>
+                    </div>
+                    <p className="text-lg font-medium">No hay colores disponibles</p>
+                    <p className="text-sm text-gray-400 mt-1">
+                      Este vehículo no tiene stock disponible en ningún color actualmente.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Simulador (1/3 del ancho) */}

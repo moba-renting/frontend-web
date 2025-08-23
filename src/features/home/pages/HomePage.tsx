@@ -20,6 +20,7 @@ interface Category {
   name: string;
   image_url: string;
   sort_order: number;
+  parent_id: number | null;
 }
 
 interface Brand {
@@ -38,13 +39,16 @@ interface Model {
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
   const [config, setConfig] = useState<HomePageConfig | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [parentCategories, setParentCategories] = useState<Category[]>([]);
+  const [childCategories, setChildCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
   const [loadingModels, setLoadingModels] = useState(false);
+  const [loadingChildCategories, setLoadingChildCategories] = useState(false);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
-    condicion: "",
+    categoriaProposito: "",
+    categoriaVehiculo: "",
     marca: "",
     modelo: ""
   });
@@ -74,15 +78,16 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
         if (brandsError) throw brandsError;
         setBrands(brandsData || []);
 
-        // Fetch categories ordered by sort_order (only active categories)
-        const { data: categoriesData, error: categoriesError } = await supabase
+        // Fetch parent categories (first level) ordered by sort_order (only active categories)
+        const { data: parentCategoriesData, error: parentCategoriesError } = await supabase
           .from('categories')
           .select('*')
+          .is('parent_id', null)
           .eq('is_active', true)
           .order('sort_order');
 
-        if (categoriesError) throw categoriesError;
-        setCategories(categoriesData || []);
+        if (parentCategoriesError) throw parentCategoriesError;
+        setParentCategories(parentCategoriesData || []);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -122,6 +127,35 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
     fetchModels();
   }, [filters.marca]);
 
+  // Fetch child categories when parent category is selected (only from filters)
+  useEffect(() => {
+    const fetchChildCategories = async () => {
+      if (!filters.categoriaProposito) {
+        setChildCategories([]);
+        return;
+      }
+
+      setLoadingChildCategories(true);
+      try {
+        const { data: childCategoriesData, error: childCategoriesError } = await supabase
+          .from('categories')
+          .select('*')
+          .eq('parent_id', filters.categoriaProposito)
+          .eq('is_active', true)
+          .order('sort_order');
+
+        if (childCategoriesError) throw childCategoriesError;
+        setChildCategories(childCategoriesData || []);
+      } catch (error) {
+        console.error('Error fetching child categories:', error);
+      } finally {
+        setLoadingChildCategories(false);
+      }
+    };
+
+    fetchChildCategories();
+  }, [filters.categoriaProposito]);
+
   // Change image in hero banner every 5 seconds
   useEffect(() => {
     if (!config?.hero_banner_urls || config.hero_banner_urls.length === 0) return;
@@ -147,6 +181,11 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
         newFilters.modelo = "";
       }
       
+      // Reset categoriaVehiculo when categoriaProposito changes
+      if (filterType === 'categoriaProposito') {
+        newFilters.categoriaVehiculo = "";
+      }
+      
       return newFilters;
     });
   };
@@ -155,8 +194,10 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
   const handleSearch = () => {
     const params = new URLSearchParams();
     
-    if (filters.condicion) {
-      params.set('condition', filters.condicion);
+    if (filters.categoriaVehiculo) {
+      params.set('category_id', filters.categoriaVehiculo);
+    } else if (filters.categoriaProposito) {
+      params.set('category_id', filters.categoriaProposito);
     }
     if (filters.marca) {
       params.set('brand_id', filters.marca);
@@ -166,6 +207,12 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
     }
     
     navigate(`/vehicles?${params.toString()}`);
+  };
+
+  // Manejar click en categoría padre (botones visuales) - navegar directamente
+  const handleParentCategoryClick = (categoryId: number) => {
+    // Navegar directamente a la página de vehículos con el filtro de categoría
+    navigate(`/vehicles?category_id=${categoryId}`);
   };
 
   // Navegar a la página de vehículos por categoría
@@ -239,14 +286,31 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <select
-                value={filters.condicion}
-                onChange={(e) => handleFilterChange('condicion', e.target.value)}
+                value={filters.categoriaProposito}
+                onChange={(e) => handleFilterChange('categoriaProposito', e.target.value)}
                 className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
               >
-                <option value="">Condición</option>
-                <option value="New">Nuevo</option>
-                <option value="Semi-New">Semi-nuevo</option>
-                <option value="Used">Usado</option>
+                <option value="">¿Para qué lo necesitas?</option>
+                {parentCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <select
+                value={filters.categoriaVehiculo}
+                onChange={(e) => handleFilterChange('categoriaVehiculo', e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+                disabled={!filters.categoriaProposito || loadingChildCategories}
+              >
+                <option value="">{loadingChildCategories ? "Cargando tipos..." : "Tipo de vehículo"}</option>
+                {childCategories.map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
               </select>
             </div>
             <div>
@@ -278,6 +342,8 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
                 ))}
               </select>
             </div>
+          </div>
+          <div className="mt-4">
             {/* Botón Buscar */}
             <button 
               onClick={handleSearch}
@@ -292,32 +358,63 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
       <section className="bg-gray-50 py-12">
         <div className="max-w-6xl mx-auto">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">
-            Categorías de Vehículos
+            Categorías
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
-            {categories.map((category) => (
-              <div
-                key={category.id}
-                onClick={() => handleCategoryClick(category.id)}
-                className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer"
-              >
-                {/* Imagen de la categoría */}
-                <div className="aspect-square bg-gray-200">
-                  <img
-                    src={category.image_url}
-                    alt={category.name}
-                    className="w-full h-full object-cover"
-                  />
+          
+          {/* Categorías - Dinámicas (Padre o Hijas según selección de filtros) */}
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 mb-8">
+            {/* Si hay categoría padre seleccionada EN LOS FILTROS, mostrar categorías hijas */}
+            {filters.categoriaProposito && childCategories.length > 0 ? (
+              /* Categorías Hijas */
+              childCategories.map((category) => (
+                <div
+                  key={category.id}
+                  onClick={() => handleCategoryClick(category.id)}
+                  className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow cursor-pointer border-l-4 border-l-orange-500"
+                >
+                  {/* Imagen de la categoría */}
+                  <div className="aspect-square bg-gray-200">
+                    <img
+                      src={category.image_url}
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  
+                  {/* Nombre de la categoría */}
+                  <div className="p-3 text-center">
+                    <h4 className="font-semibold text-sm text-gray-900">
+                      {category.name}
+                    </h4>
+                  </div>
                 </div>
-                
-                {/* Nombre de la categoría */}
-                <div className="p-3 text-center">
-                  <h3 className="font-semibold text-sm text-gray-900">
-                    {category.name}
-                  </h3>
+              ))
+            ) : (
+              /* Si no hay categoría padre seleccionada EN LOS FILTROS, mostrar categorías padre */
+              parentCategories.map((category) => (
+                <div
+                  key={category.id}
+                  onClick={() => handleParentCategoryClick(category.id)}
+                  className="bg-white rounded-lg shadow-md border border-gray-200 overflow-hidden hover:shadow-lg transition-all cursor-pointer"
+                >
+                  {/* Imagen de la categoría */}
+                  <div className="aspect-square bg-gray-200">
+                    <img
+                      src={category.image_url}
+                      alt={category.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  
+                  {/* Nombre de la categoría */}
+                  <div className="p-3 text-center">
+                    <h3 className="font-semibold text-sm text-gray-900">
+                      {category.name}
+                    </h3>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </section>

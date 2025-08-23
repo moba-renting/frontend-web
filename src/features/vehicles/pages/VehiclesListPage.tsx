@@ -3,7 +3,7 @@ import { useSearchParams } from "react-router-dom";
 import { MdFilterList } from "react-icons/md";
 import { supabase } from "../../../core/services/supabase";
 import { VehicleFilters, VehicleList } from "../components";
-import type { Vehicle, AvailableFilters, VehiclesResponse, Filters } from "../types";
+import type { Vehicle, AvailableFilters, Filters } from "../types";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -132,6 +132,8 @@ const VehiclesListPage: React.FC = () => {
       });
 
       if (error) throw error;
+      
+      // Los datos vienen directamente como el objeto de filtros disponibles
       setAvailableFilters(data || {});
     } catch (error) {
       console.error('Error loading available filters:', error);
@@ -161,9 +163,9 @@ const VehiclesListPage: React.FC = () => {
 
       if (error) throw error;
       
-      const response = data as VehiclesResponse;
-      setVehicles(response.vehicles || []);
-      setTotalCount(response.total_count || 0);
+      // Los datos vienen como un objeto JSON con total_count y vehicles
+      setVehicles(data.vehicles || []);
+      setTotalCount(data.total_count || 0);
     } catch (error) {
       console.error('Error loading vehicles:', error);
       setVehicles([]);
