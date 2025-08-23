@@ -13,6 +13,7 @@ export interface Category {
   name: string;
   image_url: string;
   sort_order: number;
+  parent_id: number | null;
 }
 
 export interface Brand {
@@ -29,7 +30,8 @@ export interface Model {
 }
 
 export interface FiltersState {
-  condicion: string;
+  categoriaProposito: string;
+  categoriaVehiculo: string;
   marca: string;
   modelo: string;
 }

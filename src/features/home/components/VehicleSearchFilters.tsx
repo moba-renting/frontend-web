@@ -1,8 +1,10 @@
 import React from "react";
-import type{ Brand, Model, FiltersState } from "../types/index";
+import type { Category, Brand, Model, FiltersState } from "../types/index";
 
 interface FiltersProps {
-  brands: Brand[];
+  parentCategories: Category[];
+  childCategories: Category[];
+  marcas: Brand[];
   models: Model[];
   filters: FiltersState;
   loadingModels: boolean;
@@ -10,25 +12,55 @@ interface FiltersProps {
   onSearch: () => void;
 }
 
-const VehicleSearchFilters: React.FC<FiltersProps> = ({ brands, models, filters, loadingModels, onChange, onSearch }) => {
+const VehicleSearchFilters: React.FC<FiltersProps> = ({ 
+  parentCategories, 
+  childCategories, 
+  marcas, 
+  models,
+  filters, 
+  loadingModels, 
+  onChange, 
+  onSearch 
+}) => {
   return (
     <section className="-mt-16 relative z-10">
       <div className="max-w-6xl mx-auto bg-white/65 backdrop-blur-md rounded-2xl shadow-xl p-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Encuentra tu auto ideal</h2>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Propósito */}
           <div>
             <select
-              value={filters.condicion}
-              onChange={(e) => onChange("condicion", e.target.value)}
+              value={filters.categoriaProposito}
+              onChange={(e) => onChange("categoriaProposito", e.target.value)}
               className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             >
-              <option value="">Condición</option>
-              <option value="New">Nuevo</option>
-              <option value="Semi-New">Semi-nuevo</option>
-              <option value="Used">Usado</option>
+              <option value="">Propósito</option>
+              {parentCategories.map((category) => (
+                <option key={category.id} value={category.id.toString()}>
+                  {category.name}
+                </option>
+              ))}
             </select>
           </div>
 
+          {/* Tipo de Vehículo */}
+          <div>
+            <select
+              value={filters.categoriaVehiculo}
+              onChange={(e) => onChange("categoriaVehiculo", e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+              disabled={!filters.categoriaProposito}
+            >
+              <option value="">{!filters.categoriaProposito ? "Selecciona propósito primero" : "Tipo de vehículo"}</option>
+              {childCategories.map((category) => (
+                <option key={category.id} value={category.id.toString()}>
+                  {category.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Marca */}
           <div>
             <select
               value={filters.marca}
@@ -36,12 +68,15 @@ const VehicleSearchFilters: React.FC<FiltersProps> = ({ brands, models, filters,
               className="w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
             >
               <option value="">Marca</option>
-              {brands.map((brand) => (
-                <option key={brand.id} value={brand.id}>{brand.name}</option>
+              {marcas.map((marca) => (
+                <option key={marca.id} value={marca.id.toString()}>
+                  {marca.name}
+                </option>
               ))}
             </select>
           </div>
 
+          {/* Modelo */}
           <div>
             <select
               value={filters.modelo}
@@ -51,11 +86,15 @@ const VehicleSearchFilters: React.FC<FiltersProps> = ({ brands, models, filters,
             >
               <option value="">{loadingModels ? "Cargando modelos..." : "Modelo"}</option>
               {models.map((model) => (
-                <option key={model.id} value={model.id}>{model.name}</option>
+                <option key={model.id} value={model.id.toString()}>
+                  {model.name}
+                </option>
               ))}
             </select>
           </div>
-
+        </div>
+        
+        <div className="mt-4">
           <button
             onClick={onSearch}
             className="w-full bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-xl font-semibold transition-colors"
