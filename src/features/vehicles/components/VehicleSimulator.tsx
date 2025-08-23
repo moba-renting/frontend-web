@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MdLocationOn, MdSchedule, MdPhone } from "react-icons/md";
+import { MdLocationOn, MdPhone } from "react-icons/md";
 import { FaWhatsapp } from "react-icons/fa";
 import type { VehicleDetail } from "../types";
 
@@ -16,10 +16,8 @@ interface QuotaOption {
 const VehicleSimulator: React.FC<VehicleSimulatorProps> = ({ vehicle }) => {
   const [selectedMonths, setSelectedMonths] = useState<number>(21);
   const [selectedKilometers, setSelectedKilometers] = useState<number>(1500);
-  const [deliveryDate, setDeliveryDate] = useState<string>("");
-  const [deliveryTime, setDeliveryTime] = useState<string>("13:00");
 
-  // Opciones de cuotas (datos fake basados en la imagen)
+  // Opciones de cuotas (Datos de prueba)
   const quotaOptions: QuotaOption[] = [
     { months: 1, monthlyPayment: 669, highlighted: false },
     { months: 3, monthlyPayment: 529, highlighted: false },

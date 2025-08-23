@@ -6,7 +6,6 @@ import {
   MdClose,
   MdOutlinePerson,
   MdLogin,
-  MdDirectionsCar,
   MdAdminPanelSettings,
 } from "react-icons/md";
 import { FaUserCircle } from "react-icons/fa";
