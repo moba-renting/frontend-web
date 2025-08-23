@@ -243,8 +243,61 @@ const VehiclesListPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="text-xl font-semibold">Cargando vehículos...</div>
+      <div className="flex-1 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          {/* Header Skeleton */}
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <div className="h-8 w-64 bg-gray-300 rounded animate-pulse"></div>
+              <div className="h-5 w-48 bg-gray-300 rounded mt-2 animate-pulse"></div>
+            </div>
+            <div className="md:hidden h-10 w-24 bg-gray-300 rounded-lg animate-pulse"></div>
+          </div>
+
+          <div className="flex gap-6">
+            {/* Sidebar Skeleton */}
+            <div className="w-64 flex-shrink-0 space-y-4">
+              <div className="h-10 bg-gray-300 rounded animate-pulse"></div>
+              <div className="space-y-3">
+                {[...Array(6)].map((_, i) => (
+                  <div key={i}>
+                    <div className="h-6 bg-gray-300 rounded w-3/4 mb-2 animate-pulse"></div>
+                    <div className="space-y-2">
+                      {[...Array(3)].map((_, j) => (
+                        <div key={j} className="h-8 bg-gray-200 rounded animate-pulse"></div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Main Content Skeleton */}
+            <main className="flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {[...Array(8)].map((_, i) => (
+                  <div key={i} className="bg-white rounded-xl shadow-md overflow-hidden animate-pulse">
+                    <div className="w-full h-48 bg-gray-300"></div>
+                    <div className="p-4 space-y-3">
+                      <div className="h-5 bg-gray-300 rounded w-3/4"></div>
+                      <div className="h-4 bg-gray-300 rounded w-1/2"></div>
+                      <div className="h-6 bg-green-200 rounded w-1/3"></div>
+                      <div className="flex gap-2">
+                        <div className="h-4 bg-gray-200 rounded w-16"></div>
+                        <div className="h-4 bg-gray-200 rounded w-16"></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination Skeleton */}
+              <div className="flex justify-center mt-8">
+                <div className="h-10 w-32 bg-gray-300 rounded animate-pulse"></div>
+              </div>
+            </main>
+          </div>
+        </div>
       </div>
     );
   }

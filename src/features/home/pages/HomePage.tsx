@@ -38,6 +38,8 @@ interface Model {
 
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
+
+  // state
   const [config, setConfig] = useState<HomePageConfig | null>(null);
   const [parentCategories, setParentCategories] = useState<Category[]>([]);
   const [childCategories, setChildCategories] = useState<Category[]>([]);
@@ -50,33 +52,31 @@ const HomePage: React.FC = () => {
     categoriaProposito: "",
     categoriaVehiculo: "",
     marca: "",
-    modelo: ""
+    modelo: "",
   });
 
-const [currentIndex, setCurrentIndex] = useState(0); // state to track the current index of the hero banner
-
+  // fetch initial data
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch home page configuration
         const { data: configData, error: configError } = await supabase
-          .from('home_page_config')
-          .select('*')
-          .eq('id', 1)
+          .from("home_page_config")
+          .select("*")
+          .eq("id", 1)
           .single();
 
         if (configError) throw configError;
-        setConfig(configData);
+        setConfig(configData as HomePageConfig);
 
         // Fetch brands ordered by sort_order (only active brands)
         const { data: brandsData, error: brandsError } = await supabase
-          .from('brands')
-          .select('*')
-          .eq('is_active', true)
-          .order('sort_order');
-
+          .from("brands")
+          .select("*")
+          .eq("is_active", true)
+          .order("sort_order");
         if (brandsError) throw brandsError;
-        setBrands(brandsData || []);
+        setBrands((brandsData || []) as Brand[]);
 
         // Fetch parent categories (first level) ordered by sort_order (only active categories)
         const { data: parentCategoriesData, error: parentCategoriesError } = await supabase
@@ -89,7 +89,7 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
         if (parentCategoriesError) throw parentCategoriesError;
         setParentCategories(parentCategoriesData || []);
       } catch (error) {
-        console.error('Error fetching data:', error);
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -98,7 +98,7 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
     fetchData();
   }, []);
 
-  // Fetch models when brand is selected
+  // fetch models when brand changes
   useEffect(() => {
     const fetchModels = async () => {
       if (!filters.marca) {
@@ -109,16 +109,15 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
       setLoadingModels(true);
       try {
         const { data: modelsData, error: modelsError } = await supabase
-          .from('models')
-          .select('*')
-          .eq('brand_id', filters.marca)
-          .eq('is_active', true)
-          .order('sort_order');
-
+          .from("models")
+          .select("*")
+          .eq("brand_id", filters.marca)
+          .eq("is_active", true)
+          .order("sort_order");
         if (modelsError) throw modelsError;
-        setModels(modelsData || []);
+        setModels((modelsData || []) as Model[]);
       } catch (error) {
-        console.error('Error fetching models:', error);
+        console.error("Error fetching models:", error);
       } finally {
         setLoadingModels(false);
       }
@@ -495,29 +494,24 @@ const [currentIndex, setCurrentIndex] = useState(0); // state to track the curre
         </div>
       </section>
 
-      {/* Preguntas Frecuentes */}
-      <section className="bg-gray-50 py-12">
-        <div className="max-w-4xl mx-auto">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8 text-center">
-            Preguntas Frecuentes
-          </h2>
-          <div className="space-y-4">
-            {config?.faqs?.map((faq, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-lg border border-gray-200 p-6"
-              >
-                <h3 className="font-semibold text-lg text-gray-900 mb-2">
-                  {faq.question}
-                </h3>
-                <p className="text-gray-700">
-                  {faq.answer}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* Categorías destacadas (estáticas como en tu versión actual) */}
+      <FeaturedCategories onCategoryClick={(id) => handleCategoryClick(id)} />
+
+      {/* Beneficios */}
+      {config?.b2c_benefits_url && config?.b2b_benefits_url && (
+        <BenefitsSection
+          b2cImage={config.b2c_benefits_url}
+          b2bImage={config.b2b_benefits_url}
+        />
+      )}
+          
+
+
+      {/* Testimonios */}
+      <Testimonials testimonials={testimonials} />
+
+      {/* FAQs (traídas de BD) */}
+      <FaqSection faqs={config?.faqs || []} />
     </div>
   );
 };
