@@ -1,6 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
-import { Toaster } from "react-hot-toast";
 import ScrollToTop from "./shared/components/ScrollToTop";
+import ToasterProvider from "./shared/components/ToasterProvider";
 import Header from "./shared/pages/Header";
 import Footer from "./shared/pages/Footer"; 
 import Register from "./features/security/pages/Register";
@@ -30,82 +30,45 @@ export default function App() {
     );
   }
   return (
-    <div className="min-h-screen w-full flex flex-col">
-      <ScrollToTop />
-      <Routes>
-        {/* Rutas de administración */}
-        <Route path="/admin/*" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminLayout />
-          </ProtectedRoute>
-        }>
-          <Route index element={<AdminDashboard />} />
-          <Route path="home-config" element={<AdminHomePage />} />
-          <Route path="settings" element={<AdminSettings />} />
-        </Route>
+    <>
+      <div className="min-h-screen w-full flex flex-col">
+        <ScrollToTop />
+        <Routes>
+          {/* Rutas de administración */}
+          <Route path="/admin/*" element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<AdminDashboard />} />
+            <Route path="home-config" element={<AdminHomePage />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
 
-        {/* Rutas públicas */}
-        <Route path="/*" element={
-          <>
-            <Header />
-            <div className="flex-1 flex flex-col">
-              <Routes>
-                <Route path="/home" element={<HomePage />} />
-                <Route path="/vehicles" element={<VehiclesListPage />} />
-                <Route path="/vehicles/compare" element={<VehicleComparePage />} />
-                <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/" element={<Navigate to="/home" replace />} />
-                <Route path="*" element={<Navigate to="/home" replace />} />
-              </Routes>
-            </div>
-            <Footer />
-          </>
-        } />
-      </Routes>
-      <Toaster 
-        position="top-center"
-        toastOptions={{
-          duration: 3000,
-          style: {
-            background: '#363636',
-            color: '#fff',
-            fontSize: '14px',
-            padding: '12px 16px',
-            borderRadius: '8px',
-            maxWidth: '90vw',
-            minWidth: '280px',
-          },
-          success: {
-            style: {
-              background: '#10b981',
-              color: '#fff',
-            },
-            iconTheme: {
-              primary: '#fff',
-              secondary: '#10b981',
-            },
-          },
-          error: {
-            style: {
-              background: '#ef4444',
-              color: '#fff',
-            },
-            iconTheme: {
-              primary: '#fff',
-              secondary: '#ef4444',
-            },
-          },
-        }}
-        containerStyle={{
-          top: '20px',
-          left: '20px',
-          right: '20px',
-        }}
-      />
-    </div>
+          {/* Rutas públicas */}
+          <Route path="/*" element={
+            <>
+              <Header />
+              <div className="flex-1 flex flex-col">
+                <Routes>
+                  <Route path="/home" element={<HomePage />} />
+                  <Route path="/vehicles" element={<VehiclesListPage />} />
+                  <Route path="/vehicles/compare" element={<VehicleComparePage />} />
+                  <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/" element={<Navigate to="/home" replace />} />
+                  <Route path="*" element={<Navigate to="/home" replace />} />
+                </Routes>
+              </div>
+              <Footer />
+            </>
+          } />
+        </Routes>
+      </div>
+      <ToasterProvider />
+    </>
   );
 }
