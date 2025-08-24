@@ -32,31 +32,33 @@ const HeroBanner: React.FC<HeroBannerProps> = ({ images, fallbackImage, autoRota
   const src = validImages.length ? validImages[currentIndex] : fallbackImage;
 
   return (
-    <section className="relative w-full h-96 bg-gray-900">
-      <img
-        src={src}
-        alt={`Hero Banner ${currentIndex + 1}`}
-        className="w-full h-full object-cover transition-opacity duration-1000"
-      />
+    <section className="relative w-full h-96 bg-white">
+      <div className="max-w-7xl mx-auto h-full relative">
+        <img
+          src={src}
+          alt={`Hero Banner ${currentIndex + 1}`}
+          className="w-full h-full object-cover transition-opacity duration-1000"
+        />
 
-      {validImages.length > 1 && (
-        <>
-          <button
-            onClick={showPrev}
-            className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 rounded-full"
-            aria-label="Anterior"
-          >
-            <span className="text-6xl leading-none">‹</span>
-          </button>
-          <button
-            onClick={showNext}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-4 rounded-full"
-            aria-label="Siguiente"
-          >
-            <span className="text-6xl leading-none">›</span>
-          </button>
-        </>
-      )}
+        {validImages.length > 1 && (
+          <>
+            <button
+              onClick={showPrev}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-white p-3 rounded-full"
+              aria-label="Anterior"
+            >
+              <span className="text-6xl leading-none">‹</span>
+            </button>
+            <button
+              onClick={showNext}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-white p-4 rounded-full"
+              aria-label="Siguiente"
+            >
+              <span className="text-6xl leading-none">›</span>
+            </button>
+          </>
+        )}
+      </div>
     </section>
   );
 };

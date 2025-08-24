@@ -39,20 +39,22 @@ const Footer: React.FC = () => (
             </div>
         </div>
         {/* Sub-footer */}
-        <div className="border-t border-brand-white/20 py-4 px-4 flex flex-col md:flex-row items-center justify-between text-center md:text-left">
-            <span className="font-secondary">
-                © {new Date().getFullYear()} Moba Renting. Todos los derechos reservados.
-            </span>
-            <div className="flex space-x-4 mt-2 md:mt-0">
-                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-                    <FaFacebookF className="h-6 w-6" />
-                </a>
-                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-                    <FaInstagram className="h-6 w-6" />
-                </a>
-                <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
-                    <FaLinkedinIn className="h-6 w-6" />
-                </a>
+        <div className="border-t border-brand-white/20 py-4">
+            <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between text-center md:text-left">
+                <span className="font-secondary">
+                    © {new Date().getFullYear()} Moba Renting. Todos los derechos reservados.
+                </span>
+                <div className="flex space-x-4 mt-2 md:mt-0">
+                    <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                        <FaFacebookF className="h-6 w-6" />
+                    </a>
+                    <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                        <FaInstagram className="h-6 w-6" />
+                    </a>
+                    <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn">
+                        <FaLinkedinIn className="h-6 w-6" />
+                    </a>
+                </div>
             </div>
         </div>
     </footer>

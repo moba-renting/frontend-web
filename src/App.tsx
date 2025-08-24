@@ -1,4 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import ScrollToTop from "./shared/components/ScrollToTop";
 import Header from "./shared/pages/Header";
 import Footer from "./shared/pages/Footer"; 
 import Register from "./features/security/pages/Register";
@@ -8,6 +10,7 @@ import ResetPassword from "./features/security/pages/ResetPassword";
 import HomePage from "./features/home/pages/HomePage";
 import VehiclesListPage from "./features/vehicles/pages/VehiclesListPage";
 import VehicleDetailPage from "./features/vehicles/pages/VehicleDetailPage";
+import VehicleComparePage from "./features/vehicles/pages/VehicleComparePage";
 import AdminLayout from "./features/admin/layout/AdminLayout";
 import AdminDashboard from "./features/admin/pages/AdminDashboard";
 import AdminHomePage from "./features/admin/pages/AdminHomePage";
@@ -28,6 +31,7 @@ export default function App() {
   }
   return (
     <div className="min-h-screen w-full flex flex-col">
+      <ScrollToTop />
       <Routes>
         {/* Rutas de administración */}
         <Route path="/admin/*" element={
@@ -48,6 +52,7 @@ export default function App() {
               <Routes>
                 <Route path="/home" element={<HomePage />} />
                 <Route path="/vehicles" element={<VehiclesListPage />} />
+                <Route path="/vehicles/compare" element={<VehicleComparePage />} />
                 <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
@@ -61,6 +66,46 @@ export default function App() {
           </>
         } />
       </Routes>
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+            fontSize: '14px',
+            padding: '12px 16px',
+            borderRadius: '8px',
+            maxWidth: '90vw',
+            minWidth: '280px',
+          },
+          success: {
+            style: {
+              background: '#10b981',
+              color: '#fff',
+            },
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#10b981',
+            },
+          },
+          error: {
+            style: {
+              background: '#ef4444',
+              color: '#fff',
+            },
+            iconTheme: {
+              primary: '#fff',
+              secondary: '#ef4444',
+            },
+          },
+        }}
+        containerStyle={{
+          top: '20px',
+          left: '20px',
+          right: '20px',
+        }}
+      />
     </div>
   );
 }

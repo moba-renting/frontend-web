@@ -77,7 +77,7 @@ const Header: React.FC = () => {
   return (
     <>
       <header className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-40 h-16">
-        <div className="w-full h-full flex items-center justify-between px-4">
+        <div className="max-w-7xl mx-auto h-full flex items-center justify-between px-4">
           {/* Botón menú móvil (izquierda) */}
           <div className="md:hidden flex items-center">
             <button

@@ -14,7 +14,7 @@ import Testimonials from "../components/Testimonials";
 import FaqSection from "../components/FaqSection";
 import HomeSkeleton from "../components/HomeSkeleton";
 import BenefitsSection from "../components/BenefitsSection";
-
+import MobaSteps from "../components/MobaSteps";
 const HomePage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -283,6 +283,12 @@ const HomePage: React.FC = () => {
         onCategoryClick={handleCategoryClick}
       />
 
+      {/* Pasos de Renting */}
+      <MobaSteps
+        watermarkText="MOBA"
+      />
+
+
       {/* Beneficios */}
       {config?.b2c_benefits_url && config?.b2b_benefits_url && (
         <BenefitsSection
@@ -301,5 +307,3 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
-
-// Force re-export to fix cache issues
