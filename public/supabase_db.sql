@@ -465,3 +465,70 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql;
+
+-- ======================================
+-- TABLA PARA LOS DOCUMENTOS LEGALES
+-- ======================================
+create table site_content (
+  id INT primary key default 1,
+  terms_and_conditions TEXT,
+  privacy_policy TEXT,
+  constraint singleton_row check (id = 1)
+);
+
+-- ======================================
+-- CRECION DE DATA DE PRUEBA PARA TERMINOS Y CONDICIONES
+-- ======================================
+UPDATE site_content
+SET 
+  terms_and_conditions = 
+'# Términos y Condiciones de Renta de Autos
+*Última actualización: 24 de agosto de 2025*
+Bienvenido a nuestro servicio de renta de autos. Al utilizar nuestra plataforma y alquilar un vehículo, usted acepta los siguientes términos y condiciones. Es importante que los lea detenidamente.
+---
+## 1. Requisitos para el Conductor
+Para poder alquilar uno de nuestros vehículos, el conductor debe cumplir con los siguientes requisitos:
+1.  Tener una edad mínima de **21 años**.
+2.  Presentar una licencia de conducir válida y vigente.
+3.  Contar con una tarjeta de crédito a su nombre para el depósito de garantía.
+## 2. Uso del Vehículo
+El vehículo alquilado solo puede ser utilizado para fines personales y de acuerdo a la ley. Queda estrictamente prohibido:
+-   Subarrendar el vehículo a terceros.
+-   Utilizar el vehículo para carreras o competencias.
+-   Transportar materiales peligrosos o ilegales.
+-   Conducir bajo la influencia del alcohol o drogas.
+> **Aviso Importante:** El incumplimiento de estas normas resultará en la terminación inmediata del contrato y la aplicación de penalizaciones económicas.
+## 3. Devolución del Vehículo
+El vehículo debe ser devuelto en la misma fecha, hora y lugar acordados en el contrato. Cualquier retraso puede generar cargos adicionales. El auto debe ser devuelto en las mismas condiciones en las que fue   entregado, con el tanque de combustible al mismo nivel.
+Para cualquier duda o consulta, no dude en [contactarnos por correo](mailto:soporte@tu-pagina.com).'
+WHERE 
+  id = 1;
+
+UPDATE site_content
+SET 
+  privacy_policy = 
+'# Política de Privacidad
+*Última actualización: 24 de agosto de 2025*
+En nuestro servicio de renta de autos, su privacidad es nuestra prioridad. Esta política detalla cómo recopilamos, usamos y protegemos su información personal.
+---
+## 1. Información que Recopilamos
+Para gestionar su alquiler, recopilamos los siguientes datos:
+1.  **Datos de Identificación Personal:** Nombre completo, dirección, número de teléfono, correo electrónico y copia de su licencia de conducir.
+2.  **Datos de Pago:** Información de su tarjeta de crédito o débito, necesaria para procesar el pago y el depósito de garantía.
+3.  **Datos del Alquiler:** Fechas y lugares de recogida y devolución del vehículo.
+4.  **Datos de Telemetría del Vehículo:** Podemos recopilar datos de ubicación (GPS) y de uso del vehículo (kilometraje, velocidad) por motivos de seguridad y gestión de la flota.
+## 2. Uso de su Información
+Utilizamos su información para los siguientes propósitos:
+-   Procesar y confirmar su reservación.
+-   Verificar su identidad y elegibilidad para alquilar.
+-   Gestionar el cobro de los servicios y depósitos de garantía.
+-   Brindarle soporte al cliente y asistencia en caso de emergencia.
+-   Proteger nuestros activos y prevenir fraudes o abusos.
+> **Transparencia:** Jamás venderemos su información personal a terceros para fines de marketing.
+## 3. Seguridad de los Datos
+Implementamos medidas de seguridad técnicas y organizativas para proteger su información contra el acceso no autorizado, la alteración o la destrucción. La información de pago se transmite de forma cifrada.
+## 4. Sus Derechos
+Usted tiene derecho a acceder, rectificar o solicitar la eliminación de sus datos personales.
+Si tiene alguna pregunta sobre cómo manejamos su privacidad, por favor no dude en [contactarnos por correo](mailto:privacidad@tu-pagina.com).'
+WHERE 
+  id = 1;

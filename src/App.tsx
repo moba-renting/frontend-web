@@ -1,6 +1,8 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import Header from "./shared/pages/Header";
 import Footer from "./shared/pages/Footer"; 
+import TermsAndConditions from "./shared/pages/TermsAndConditions";
+import PrivacyPolicy from "./shared/pages/PrivacyPolicy";
 import Register from "./features/security/pages/Register";
 import Login from "./features/security/pages/Login";
 import ForgotPassword from "./features/security/pages/ForgotPassword";
@@ -49,6 +51,8 @@ export default function App() {
                 <Route path="/home" element={<HomePage />} />
                 <Route path="/vehicles" element={<VehiclesListPage />} />
                 <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
+                <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
