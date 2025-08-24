@@ -1,4 +1,6 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import ScrollToTop from "./shared/components/ScrollToTop";
+import ToasterProvider from "./shared/components/ToasterProvider";
 import Header from "./shared/pages/Header";
 import Footer from "./shared/pages/Footer"; 
 import TermsAndConditions from "./shared/pages/TermsAndConditions";
@@ -10,6 +12,7 @@ import ResetPassword from "./features/security/pages/ResetPassword";
 import HomePage from "./features/home/pages/HomePage";
 import VehiclesListPage from "./features/vehicles/pages/VehiclesListPage";
 import VehicleDetailPage from "./features/vehicles/pages/VehicleDetailPage";
+import VehicleComparePage from "./features/vehicles/pages/VehicleComparePage";
 import AdminLayout from "./features/admin/layout/AdminLayout";
 import AdminDashboard from "./features/admin/pages/AdminDashboard";
 import AdminHomePage from "./features/admin/pages/AdminHomePage";
@@ -29,42 +32,47 @@ export default function App() {
     );
   }
   return (
-    <div className="min-h-screen w-full flex flex-col">
-      <Routes>
-        {/* Rutas de administración */}
-        <Route path="/admin/*" element={
-          <ProtectedRoute requiredRole="admin">
-            <AdminLayout />
-          </ProtectedRoute>
-        }>
-          <Route index element={<AdminDashboard />} />
-          <Route path="home-config" element={<AdminHomePage />} />
-          <Route path="settings" element={<AdminSettings />} />
-        </Route>
+    <>
+      <div className="min-h-screen w-full flex flex-col">
+        <ScrollToTop />
+        <Routes>
+          {/* Rutas de administración */}
+          <Route path="/admin/*" element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminLayout />
+            </ProtectedRoute>
+          }>
+            <Route index element={<AdminDashboard />} />
+            <Route path="home-config" element={<AdminHomePage />} />
+            <Route path="settings" element={<AdminSettings />} />
+          </Route>
 
-        {/* Rutas públicas */}
-        <Route path="/*" element={
-          <>
-            <Header />
-            <div className="flex-1 flex flex-col">
-              <Routes>
-                <Route path="/home" element={<HomePage />} />
-                <Route path="/vehicles" element={<VehiclesListPage />} />
-                <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
-                <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
+          {/* Rutas públicas */}
+          <Route path="/*" element={
+            <>
+              <Header />
+              <div className="flex-1 flex flex-col">
+                <Routes>
+                  <Route path="/home" element={<HomePage />} />
+                  <Route path="/vehicles" element={<VehiclesListPage />} />
+                  <Route path="/vehicles/compare" element={<VehicleComparePage />} />
+                  <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
+                  <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
                 <Route path="/privacy-policy" element={<PrivacyPolicy />} />
                 <Route path="/register" element={<Register />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/forgot-password" element={<ForgotPassword />} />
-                <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/" element={<Navigate to="/home" replace />} />
-                <Route path="*" element={<Navigate to="/home" replace />} />
-              </Routes>
-            </div>
-            <Footer />
-          </>
-        } />
-      </Routes>
-    </div>
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/forgot-password" element={<ForgotPassword />} />
+                  <Route path="/reset-password" element={<ResetPassword />} />
+                  <Route path="/" element={<Navigate to="/home" replace />} />
+                  <Route path="*" element={<Navigate to="/home" replace />} />
+                </Routes>
+              </div>
+              <Footer />
+            </>
+          } />
+        </Routes>
+      </div>
+      <ToasterProvider />
+    </>
   );
 }
