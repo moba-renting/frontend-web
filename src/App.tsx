@@ -58,8 +58,8 @@ export default function App() {
                   <Route path="/vehicles/compare" element={<VehicleComparePage />} />
                   <Route path="/vehicles/:id" element={<VehicleDetailPage />} />
                   <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
-                <Route path="/privacy-policy" element={<PrivacyPolicy />} />
-                <Route path="/register" element={<Register />} />
+                  <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+                  <Route path="/register" element={<Register />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/forgot-password" element={<ForgotPassword />} />
                   <Route path="/reset-password" element={<ResetPassword />} />
