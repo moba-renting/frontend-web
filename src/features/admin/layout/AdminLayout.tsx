@@ -20,6 +20,12 @@ const AdminLayout: React.FC = () => {
       current: location.pathname === "/admin/home-config"
     },
     {
+      name: "Configuración del Sitio",
+      href: "/admin/site-content",
+      icon: MdSettings,
+      current: location.pathname === "/admin/site-content"
+    },
+    {
       name: "Configuraciones",
       href: "/admin/settings",
       icon: MdSettings,

@@ -34,42 +34,6 @@ const PrivacyPolicy: React.FC = () => {
     fetchPrivacyPolicy();
   }, []);
 
-  // Función para convertir Markdown básico a HTML
-  const parseMarkdown = (markdown: string): string => {
-    return markdown
-      // Títulos
-      .replace(/^# (.*$)/gim, '<h1 class="text-3xl font-bold text-gray-900 mb-4">$1</h1>')
-      .replace(/^## (.*$)/gim, '<h2 class="text-2xl font-semibold text-gray-800 mb-3 mt-6">$1</h2>')
-      .replace(/^### (.*$)/gim, '<h3 class="text-xl font-medium text-gray-700 mb-2 mt-4">$1</h3>')
-      
-      // Texto en cursiva
-      .replace(/\*(.*?)\*/gim, '<em class="italic text-gray-600">$1</em>')
-      
-      // Texto en negrita
-      .replace(/\*\*(.*?)\*\*/gim, '<strong class="font-semibold text-gray-900">$1</strong>')
-      
-      // Links
-      .replace(/\[([^\]]+)\]\(([^)]+)\)/gim, '<a href="$2" class="text-blue-600 hover:text-blue-800 underline" target="_blank" rel="noopener noreferrer">$1</a>')
-      
-      // Listas con números
-      .replace(/^\d+\.\s+(.*$)/gim, '<li class="ml-4">$1</li>')
-      
-      // Listas con guiones
-      .replace(/^-\s+(.*$)/gim, '<li class="ml-4 list-disc">$1</li>')
-      
-      // Blockquotes
-      .replace(/^>\s+(.*$)/gim, '<blockquote class="border-l-4 border-orange-500 pl-4 my-3 bg-orange-50 p-3 rounded-r-lg"><p class="text-gray-700 font-medium">$1</p></blockquote>')
-      
-      // Líneas horizontales
-      .replace(/^---$/gim, '<hr class="border-gray-300 my-6">')
-      
-      // Párrafos (líneas que no son títulos, listas o blockquotes)
-      .replace(/^(?!<[h|l|b|h])(.+)$/gim, '<p class="text-gray-700 leading-tight">$1</p>')
-      
-      // Saltos de línea
-      .replace(/\n/g, '<br/>');
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
@@ -105,9 +69,22 @@ const PrivacyPolicy: React.FC = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div 
-            className="prose prose-lg max-w-none"
+            className="prose prose-lg max-w-none
+              [&_h1]:text-3xl [&_h1]:font-bold [&_h1]:text-gray-900 [&_h1]:mb-4 [&_h1]:mt-6
+              [&_h2]:text-2xl [&_h2]:font-semibold [&_h2]:text-gray-800 [&_h2]:mb-3 [&_h2]:mt-6
+              [&_h3]:text-xl [&_h3]:font-medium [&_h3]:text-gray-700 [&_h3]:mb-2 [&_h3]:mt-4
+              [&_p]:text-gray-700 [&_p]:leading-relaxed [&_p]:mb-4
+              [&_strong]:font-semibold [&_strong]:text-gray-900
+              [&_em]:italic [&_em]:text-gray-600
+              [&_ul]:my-4 [&_ul]:pl-6 [&_ul]:list-disc
+              [&_ol]:my-4 [&_ol]:pl-6 [&_ol]:list-decimal
+              [&_li]:my-1 [&_li]:text-gray-700
+              [&_blockquote]:border-l-4 [&_blockquote]:border-orange-500 [&_blockquote]:bg-orange-50 
+              [&_blockquote]:px-6 [&_blockquote]:py-4 [&_blockquote]:my-6 [&_blockquote]:italic
+              [&_blockquote_p]:m-0 [&_blockquote_p]:text-orange-800
+              [&_a]:text-orange-600 [&_a]:underline [&_a:hover]:text-orange-700"
             dangerouslySetInnerHTML={{ 
-              __html: parseMarkdown(content) 
+              __html: content 
             }}
           />
         </div>

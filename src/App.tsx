@@ -17,6 +17,7 @@ import AdminLayout from "./features/admin/layout/AdminLayout";
 import AdminDashboard from "./features/admin/pages/AdminDashboard";
 import AdminHomePage from "./features/admin/pages/AdminHomePage";
 import AdminSettings from "./features/admin/pages/AdminSettings";
+import AdminSiteContent from "./features/admin/pages/AdminSiteContent";
 import ProtectedRoute from "./features/admin/components/ProtectedRoute";
 import { UseSupabaseAuth } from "./core/services/UseSupabaseAuth";
 
@@ -44,6 +45,7 @@ export default function App() {
           }>
             <Route index element={<AdminDashboard />} />
             <Route path="home-config" element={<AdminHomePage />} />
+            <Route path="site-content" element={<AdminSiteContent />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
 
