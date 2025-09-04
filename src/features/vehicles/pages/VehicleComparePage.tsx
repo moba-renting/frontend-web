@@ -2,55 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "../../../core/services/supabase";
 import { Fuel, Users, Gauge, DollarSign, Car, Calendar, Activity, Settings, ArrowLeft } from "lucide-react";
-
-interface VehicleDataFromDB {
-  id: number;
-  vehicle_price: number;
-  maintenance_price: number;
-  soat_price: number;
-  auto_parts_price: number;
-  insurance_price: number;
-  image_urls: string[];
-  mileage: number;
-  year: number;
-  fuel: string;
-  edition: string;
-  traction: string;
-  condition: string;
-  transmission: string;
-  dealership_authorization: boolean;
-  insurance_authorization: boolean;
-  created_at: string;
-  models: {
-    id: number;
-    name: string;
-    brands: {
-      id: number;
-      name: string;
-    };
-  };
-  categories: {
-    id: number;
-    name: string;
-  };
-  gps: {
-    id: number;
-    name: string;
-    price: number;
-  };
-  dealerships: {
-    id: number;
-    name: string;
-    handle: string;
-  };
-}
-
-interface ComparisonItem {
-  icon: React.ReactNode;
-  label: string;
-  getValue: (vehicle: VehicleDataFromDB) => string | number;
-  format?: (value: any) => string;
-}
+import type { VehicleDataFromDB, ComparisonItem } from "../types";
 
 const VehicleComparePage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -99,9 +51,8 @@ const VehicleComparePage: React.FC = () => {
     },
     {
       icon: <Activity className="w-4 h-4 md:w-5 md:h-5" />,
-      label: "Kilometraje",
-      getValue: (v) => v.mileage || 0,
-      format: (value) => value === 0 ? 'N/A' : `${value.toLocaleString()} km`
+      label: "Estado",
+      getValue: () => "Nuevo 0km"
     },
     {
       icon: <Settings className="w-4 h-4 md:w-5 md:h-5" />,
@@ -138,20 +89,17 @@ const VehicleComparePage: React.FC = () => {
           .select(`
             id,
             vehicle_price,
-            maintenance_price,
-            soat_price,
-            auto_parts_price,
-            insurance_price,
+            annual_insurance_price,
+            low_mileage_rate_per_km,
+            medium_mileage_rate_per_km,
+            high_mileage_rate_per_km,
             image_urls,
-            mileage,
             year,
             fuel,
             edition,
             traction,
-            condition,
             transmission,
-            dealership_authorization,
-            insurance_authorization,
+            is_active,
             created_at,
             models (
               id,
@@ -173,12 +121,13 @@ const VehicleComparePage: React.FC = () => {
             dealerships (
               id,
               name,
-              handle
+              handle,
+              is_active
             )
           `)
           .in('id', ids.map(id => parseInt(id)))
-          .eq('dealership_authorization', true)
-          .eq('insurance_authorization', true) as { data: VehicleDataFromDB[] | null, error: any };
+          .eq('is_active', true)
+          .eq('dealerships.is_active', true) as { data: VehicleDataFromDB[] | null, error: Error | null };
 
         if (error) throw error;
         
@@ -296,7 +245,7 @@ const VehicleComparePage: React.FC = () => {
                 {vehicle.models?.brands?.name || 'Marca'} {vehicle.models?.name || 'Modelo'}
               </h2>
               <p className="text-base md:text-lg text-gray-600 mt-2">
-                {`${vehicle.year || 'Año'} - ${vehicle.condition || 'Condición'}`}
+                {`${vehicle.year || 'Año'} - Nuevo 0km`}
               </p>
               {vehicle.edition && (
                 <p className="text-sm md:text-base text-gray-500 mt-1">

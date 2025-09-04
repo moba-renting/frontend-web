@@ -2,64 +2,14 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MdArrowBack } from "react-icons/md";
 import { supabase } from "../../../core/services/supabase";
-import { VehicleGallery, VehicleSimulator } from "../components";
-import type { VehicleDetail } from "../types";
-
-// Interfaz para los datos que vienen de Supabase
-interface VehicleDataFromDB {
-  id: number;
-  vehicle_price: number;
-  maintenance_price: number;
-  soat_price: number;
-  auto_parts_price: number;
-  insurance_price: number;
-  image_urls: string[];
-  mileage: number;
-  year: number;
-  fuel: string;
-  edition: string;
-  traction: string;
-  condition: string;
-  transmission: string;
-  dealership_authorization: boolean;
-  insurance_authorization: boolean;
-  created_at: string;
-  models: {
-    id: number;
-    name: string;
-    brands: {
-      id: number;
-      name: string;
-    };
-  };
-  categories: {
-    id: number;
-    name: string;
-  };
-  gps: {
-    id: number;
-    name: string;
-    price: number;
-  };
-  dealerships: {
-    id: number;
-    name: string;
-    handle: string;
-  };
-}
-
-// Interfaz para los colores disponibles
-interface VehicleColor {
-  color_id: number;
-  name: string;
-  hex_code: string;
-  stock_quantity: number;
-}
+import { VehicleDetailGallery, VehicleDetailRentalSimulator } from "../components";
+import type { VehicleDetail, VehicleDataFromDB, VehicleColor } from "../types";
 
 const VehicleDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [vehicle, setVehicle] = useState<VehicleDetail | null>(null);
+  const [vehicleDbData, setVehicleDbData] = useState<VehicleDataFromDB | null>(null);
   const [availableColors, setAvailableColors] = useState<VehicleColor[]>([]);
   const [selectedColor, setSelectedColor] = useState<VehicleColor | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,20 +30,17 @@ const VehicleDetailPage: React.FC = () => {
           .select(`
             id,
             vehicle_price,
-            maintenance_price,
-            soat_price,
-            auto_parts_price,
-            insurance_price,
+            annual_insurance_price,
+            low_mileage_rate_per_km,
+            medium_mileage_rate_per_km,
+            high_mileage_rate_per_km,
             image_urls,
-            mileage,
             year,
             fuel,
             edition,
             traction,
-            condition,
             transmission,
-            dealership_authorization,
-            insurance_authorization,
+            is_active,
             created_at,
             models (
               id,
@@ -115,12 +62,13 @@ const VehicleDetailPage: React.FC = () => {
             dealerships (
               id,
               name,
-              handle
+              handle,
+              is_active
             )
           `)
           .eq('id', parseInt(id))
-          .eq('dealership_authorization', true)
-          .eq('insurance_authorization', true)
+          .eq('is_active', true)
+          .eq('dealerships.is_active', true)
           .single() as { data: VehicleDataFromDB | null, error: Error | null };
 
         if (vehicleError) {
@@ -180,20 +128,16 @@ const VehicleDetailPage: React.FC = () => {
           cilindrada: vehicleData.edition, // Usamos el campo edition como cilindrada/versión
           potencia: `${vehicleData.fuel} Engine`, // Basado en el tipo de combustible
           traccion: vehicleData.traction,
-          condicion: vehicleData.condition,
           categoria: vehicleData.categories.name,
           image_urls: vehicleData.image_urls || [],
-          combustible: vehicleData.fuel,
-          transmision: vehicleData.transmission,
-          kilometraje: vehicleData.mileage,
-          precio: vehicleData.vehicle_price,
-          descripcion: `${vehicleData.models.brands.name} ${vehicleData.models.name} ${vehicleData.year} en excelente estado. Vehículo ${vehicleData.condition.toLowerCase()} con ${vehicleData.mileage.toLocaleString()} kilómetros. ${vehicleData.edition && vehicleData.edition !== '' ? `Versión ${vehicleData.edition}.` : ''} Ideal para quienes buscan calidad y confiabilidad.`,
+          descripcion: `${vehicleData.models.brands.name} ${vehicleData.models.name} ${vehicleData.year} - Vehículo nuevo 0km. ${vehicleData.edition && vehicleData.edition !== '' ? `Versión ${vehicleData.edition}.` : ''} Ideal para quienes buscan calidad y confiabilidad.`,
           equipamiento: [
             `Sistema GPS ${vehicleData.gps.name}`,
             `Transmisión ${vehicleData.transmission}`,
             `Tracción ${vehicleData.traction}`,
             `Motor ${vehicleData.fuel}`,
-            "Sistema de seguridad estándar"
+            "Sistema de seguridad estándar",
+            "Vehículo nuevo 0 kilómetros"
           ],
           concesionario: {
             nombre: vehicleData.dealerships.name,
@@ -203,6 +147,7 @@ const VehicleDetailPage: React.FC = () => {
         };
 
         setVehicle(vehicleDetail);
+        setVehicleDbData(vehicleData);
       } catch (error) {
         console.error('Error fetching vehicle:', error);
         setError("Error al cargar los detalles del vehículo");
@@ -270,7 +215,7 @@ const VehicleDetailPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Galería e información del vehículo (2/3 del ancho) */}
           <div className="lg:col-span-2 space-y-6">
-            <VehicleGallery vehicle={vehicle} />
+            <VehicleDetailGallery vehicle={vehicle} />
             
             {/* Sección de colores disponibles */}
             <div className="bg-white rounded-lg shadow-md border border-gray-200 p-6">
@@ -338,7 +283,16 @@ const VehicleDetailPage: React.FC = () => {
 
           {/* Simulador (1/3 del ancho) */}
           <div className="lg:col-span-1">
-            <VehicleSimulator vehicle={vehicle} />
+            {vehicleDbData && (
+              <VehicleDetailRentalSimulator 
+                vehicle={vehicle}
+                vehiclePrice={vehicleDbData.vehicle_price}
+                annualInsurancePrice={vehicleDbData.annual_insurance_price}
+                lowMileageRate={vehicleDbData.low_mileage_rate_per_km}
+                mediumMileageRate={vehicleDbData.medium_mileage_rate_per_km}
+                highMileageRate={vehicleDbData.high_mileage_rate_per_km}
+              />
+            )}
           </div>
         </div>
       </div>

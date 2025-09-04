@@ -2,10 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeftRight, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-
-interface CompareButtonProps {
-  vehicleId: number;
-}
+import type { CompareButtonProps } from '../types';
 
 // Mantenemos los IDs de los vehículos seleccionados para comparar en el localStorage
 const COMPARE_STORAGE_KEY = 'moba_compare_vehicle';

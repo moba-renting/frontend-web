@@ -1,12 +1,8 @@
 import React, { useState } from "react";
-import { MdChevronLeft, MdChevronRight, MdLocalGasStation, MdSpeed, MdSettings, MdEvent } from "react-icons/md";
-import type { VehicleDetail } from "../types";
+import { MdChevronLeft, MdChevronRight, MdLocalGasStation, MdSpeed, MdEvent } from "react-icons/md";
+import type { VehicleDetailGalleryProps } from "../types";
 
-interface VehicleGalleryProps {
-  vehicle: VehicleDetail;
-}
-
-const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
+const VehicleDetailGallery: React.FC<VehicleDetailGalleryProps> = ({ vehicle }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   // Verificar si hay imágenes disponibles
@@ -15,13 +11,13 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
 
   const nextImage = () => {
     setCurrentImageIndex((prev) => 
-      prev === images.length - 1 ? 0 : prev + 1
+      prev === (images?.length ?? 1) - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
     setCurrentImageIndex((prev) => 
-      prev === 0 ? images.length - 1 : prev - 1
+      prev === 0 ? (images?.length ?? 1) - 1 : prev - 1
     );
   };
 
@@ -36,7 +32,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
         {/* Imagen principal */}
         <div className="relative aspect-[16/10] bg-gray-200 rounded-lg overflow-hidden">
           <img
-            src={images[currentImageIndex]}
+            src={images?.[currentImageIndex] ?? 'https://via.placeholder.com/800x500/f3f4f6/9ca3af?text=Imagen+no+disponible'}
             alt={`${vehicle.nombre} - Imagen ${currentImageIndex + 1}`}
             className="w-full h-full object-cover"
             onError={(e) => {
@@ -45,7 +41,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
           />
           
           {/* Controles de navegación */}
-          {hasImages && images.length > 1 && (
+          {hasImages && images && images.length > 1 && (
             <>
               <button
                 onClick={prevImage}
@@ -62,16 +58,16 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
               
               {/* Indicador de imagen actual */}
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/50 text-white px-3 py-1 rounded-full text-sm">
-                {currentImageIndex + 1} / {images.length}
+                {currentImageIndex + 1} / {images?.length ?? 1}
               </div>
             </>
           )}
         </div>
 
         {/* Miniaturas */}
-        {hasImages && images.length > 1 && (
+        {hasImages && images && images.length > 1 && (
           <div className="flex gap-2 mt-4 overflow-x-auto pb-2">
-            {images.map((image, index) => (
+            {images?.map((image, index) => (
               <button
                 key={index}
                 onClick={() => goToImage(index)}
@@ -101,7 +97,7 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
           <h1 className="text-3xl font-bold text-gray-900 mb-2">{vehicle.nombre}</h1>
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full font-medium">
-              {vehicle.condicion}
+              Nuevo 0km
             </span>
             <span>{vehicle.categoria}</span>
           </div>
@@ -118,28 +114,24 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
           </div>
           
           <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <MdSpeed className="w-5 h-5 text-gray-600" />
-            <div>
-              <p className="text-xs text-gray-500">Kilometraje</p>
-              <p className="font-semibold">{vehicle.kilometraje.toLocaleString()} km</p>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
             <MdLocalGasStation className="w-5 h-5 text-gray-600" />
             <div>
-              <p className="text-xs text-gray-500">Combustible</p>
-              <p className="font-semibold">{vehicle.combustible}</p>
+              <p className="text-xs text-gray-500">Estado</p>
+              <p className="font-semibold">Nuevo 0km</p>
             </div>
           </div>
           
-          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <MdSettings className="w-5 h-5 text-gray-600" />
-            <div>
-              <p className="text-xs text-gray-500">Transmisión</p>
-              <p className="font-semibold">{vehicle.transmision}</p>
+          {vehicle.rental_simulation && (
+            <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
+              <MdSpeed className="w-5 h-5 text-green-600" />
+              <div>
+                <p className="text-xs text-gray-500">Cuota mensual</p>
+                <p className="font-semibold text-green-600">
+                  S/ {vehicle.rental_simulation.cuota_final_mensual.toLocaleString()}
+                </p>
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Detalles adicionales */}
@@ -170,8 +162,13 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
                 <span className="font-medium">{vehicle.traccion}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Precio:</span>
-                <span className="font-medium text-green-600">S/ {vehicle.precio.toLocaleString()}</span>
+                <span className="text-gray-600">Valor del vehículo:</span>
+                <span className="font-medium text-green-600">
+                  {vehicle.rental_simulation 
+                    ? `S/ ${vehicle.rental_simulation.valor_residual.toLocaleString()}` 
+                    : 'Consultar precio'
+                  }
+                </span>
               </div>
             </div>
           </div>
@@ -205,4 +202,4 @@ const VehicleGallery: React.FC<VehicleGalleryProps> = ({ vehicle }) => {
   );
 };
 
-export default VehicleGallery;
+export default VehicleDetailGallery;

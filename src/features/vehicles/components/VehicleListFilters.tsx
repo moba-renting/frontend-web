@@ -1,42 +1,18 @@
 import React from "react";
 import { MdClear } from "react-icons/md";
-import type { AvailableFilters, Filters } from "../types";
+import type { VehicleListFiltersProps, FuelType, TransmissionType, TractionType } from "../types";
 
-interface VehicleFiltersProps {
-  availableFilters: AvailableFilters;
-  filters: Filters;
-  showFilters: boolean;
-  customYearMin: string;
-  customYearMax: string;
-  customMileageMin: string;
-  customMileageMax: string;
-  onFilterChange: (newFilters: Partial<Filters>) => void;
-  onClearFilters: () => void;
-  onCustomYearMinChange: (value: string) => void;
-  onCustomYearMaxChange: (value: string) => void;
-  onCustomMileageMinChange: (value: string) => void;
-  onCustomMileageMaxChange: (value: string) => void;
-  onApplyCustomYearFilter: () => void;
-  onApplyCustomMileageFilter: () => void;
-  onClearCustomInputs: (type: 'year' | 'mileage') => void;
-}
-
-const VehicleFilters: React.FC<VehicleFiltersProps> = ({
+const VehicleListFilters: React.FC<VehicleListFiltersProps> = ({
   availableFilters,
   filters,
   showFilters,
   customYearMin,
   customYearMax,
-  customMileageMin,
-  customMileageMax,
   onFilterChange,
   onClearFilters,
   onCustomYearMinChange,
   onCustomYearMaxChange,
-  onCustomMileageMinChange,
-  onCustomMileageMaxChange,
   onApplyCustomYearFilter,
-  onApplyCustomMileageFilter,
   onClearCustomInputs,
 }) => {
   return (
@@ -126,22 +102,23 @@ const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           </div>
         )}
 
-        {/* Condición */}
-        {availableFilters.conditions && availableFilters.conditions.length > 0 && (
+        {/* Combustible */}
+        {availableFilters.fuels && availableFilters.fuels.length > 0 && (
           <div>
-            <h3 className="font-medium text-gray-900 mb-3">Condición</h3>
+            <h3 className="font-medium text-gray-900 mb-3">Combustible</h3>
             <div className="space-y-2">
-              {availableFilters.conditions.map((condition) => (
-                <label key={condition.name} className="flex items-center cursor-pointer">
+              {availableFilters.fuels.map((fuel) => (
+                <label key={fuel.name} className="flex items-center cursor-pointer">
                   <input
-                    type="radio"
-                    name="condition"
-                    checked={filters.condition === condition.name}
-                    onChange={() => onFilterChange({ condition: condition.name })}
+                    type="checkbox"
+                    checked={filters.fuel === fuel.name}
+                    onChange={() => onFilterChange({ 
+                      fuel: filters.fuel === fuel.name ? undefined : fuel.name as FuelType
+                    })}
                     className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">
-                    {condition.name} ({condition.count})
+                    {fuel.name} ({fuel.count})
                   </span>
                 </label>
               ))}
@@ -214,69 +191,6 @@ const VehicleFilters: React.FC<VehicleFiltersProps> = ({
           </div>
         )}
 
-        {/* Rango de Kilometraje */}
-        {availableFilters.mileage_ranges && availableFilters.mileage_ranges.length > 0 && (
-          <div>
-            <h3 className="font-medium text-gray-900 mb-3">Kilometraje</h3>
-            <div className="space-y-2 mb-4">
-              {availableFilters.mileage_ranges.map((mileageRange) => (
-                <label key={mileageRange.range} className="flex items-center cursor-pointer">
-                  <input
-                    type="radio"
-                    name="mileage_range"
-                    checked={filters.mileage_min === mileageRange.min && filters.mileage_max === mileageRange.max}
-                    onChange={() => {
-                      onClearCustomInputs('mileage');
-                      onFilterChange({ 
-                        mileage_min: mileageRange.min, 
-                        mileage_max: mileageRange.max 
-                      });
-                    }}
-                    className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
-                  />
-                  <span className="ml-2 text-sm text-gray-700">
-                    {mileageRange.range} ({mileageRange.count})
-                  </span>
-                </label>
-              ))}
-            </div>
-            
-            {/* Filtro personalizado de kilometraje */}
-            <div className="border-t pt-3">
-              <p className="text-sm font-medium text-gray-700 mb-2">Rango personalizado:</p>
-              <div className="grid grid-cols-2 gap-2 mb-3">
-                <div>
-                  <input
-                    type="number"
-                    placeholder="Km mín"
-                    min="0"
-                    value={customMileageMin}
-                    onChange={(e) => onCustomMileageMinChange(e.target.value)}
-                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </div>
-                <div>
-                  <input
-                    type="number"
-                    placeholder="Km máx"
-                    min="0"
-                    value={customMileageMax}
-                    onChange={(e) => onCustomMileageMaxChange(e.target.value)}
-                    className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                  />
-                </div>
-              </div>
-              <button
-                onClick={onApplyCustomMileageFilter}
-                disabled={!customMileageMin && !customMileageMax}
-                className="w-full px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-              >
-                Aplicar rango
-              </button>
-            </div>
-          </div>
-        )}
-
         {/* Transmisión */}
         {availableFilters.transmissions && availableFilters.transmissions.length > 0 && (
           <div>
@@ -288,7 +202,9 @@ const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                     type="radio"
                     name="transmission"
                     checked={filters.transmission === transmission.name}
-                    onChange={() => onFilterChange({ transmission: transmission.name })}
+                    onChange={() => onFilterChange({ 
+                      transmission: filters.transmission === transmission.name ? undefined : transmission.name as TransmissionType
+                    })}
                     className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">
@@ -311,7 +227,9 @@ const VehicleFilters: React.FC<VehicleFiltersProps> = ({
                     type="radio"
                     name="traction"
                     checked={filters.traction === traction.name}
-                    onChange={() => onFilterChange({ traction: traction.name })}
+                    onChange={() => onFilterChange({ 
+                                            traction: filters.traction === traction.name ? undefined : traction.name as TractionType
+                    })}
                     className="w-4 h-4 text-green-600 border-gray-300 focus:ring-green-500"
                   />
                   <span className="ml-2 text-sm text-gray-700">
@@ -350,4 +268,4 @@ const VehicleFilters: React.FC<VehicleFiltersProps> = ({
   );
 };
 
-export default VehicleFilters;
+export default VehicleListFilters;

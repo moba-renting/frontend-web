@@ -1,5 +1,6 @@
 // Exportar componentes del feature vehicles
-export { default as VehicleFilters } from './VehicleFilters';
-export { default as VehicleList } from './VehicleList';
-export { default as VehicleGallery } from './VehicleGallery';
-export { default as VehicleSimulator } from './VehicleSimulator';
+export { default as VehicleListFilters } from './VehicleListFilters';
+export { default as VehicleListGrid } from './VehicleListGrid';
+export { default as VehicleListRentalSimulator } from './VehicleListRentalSimulator';
+export { default as VehicleDetailGallery } from './VehicleDetailGallery';
+export { default as VehicleDetailRentalSimulator } from './VehicleDetailRentalSimulator';

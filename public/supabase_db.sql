@@ -93,10 +93,10 @@ CREATE TRIGGER on_dealership_deleted
 -- ==============================
 -- ENUMS
 -- ==============================
-CREATE TYPE condition_type AS ENUM ('New', 'Semi-New', 'Used');
 CREATE TYPE fuel_type AS ENUM ('Gasoline', 'Diesel', 'Hybrid', 'Electric');
 CREATE TYPE traction_type AS ENUM ('FWD', 'RWD', 'AWD', '4WD'); -- tracción
 CREATE TYPE transmission_type AS ENUM ('Manual', 'Automatic', 'CVT', 'Semi-Automatic');
+
 
 -- ==============================
 -- TABLAS DE MARCAS, MODELOS Y CATEGORIAS
@@ -167,21 +167,20 @@ CREATE TABLE vehicles (
     model_id BIGINT NOT NULL REFERENCES models(id) ON DELETE RESTRICT,
     gps_id BIGINT NOT NULL REFERENCES gps(id) ON DELETE RESTRICT,
     category_id BIGINT NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
+
     vehicle_price NUMERIC NOT NULL,
-    maintenance_price NUMERIC NOT NULL,
-    soat_price NUMERIC NOT NULL,
-    auto_parts_price NUMERIC NOT NULL,
-    insurance_price NUMERIC NOT NULL,
+    annual_insurance_price NUMERIC,
+    low_mileage_rate_per_km NUMERIC,
+    medium_mileage_rate_per_km NUMERIC,
+    high_mileage_rate_per_km NUMERIC,
+
     image_urls TEXT[] NOT NULL,
-    mileage INTEGER NOT NULL CHECK (mileage >= 0),
-    year SMALLINT NOT NULL CHECK (year >= 1900 AND year <= EXTRACT(YEAR FROM CURRENT_DATE) + 1),
+    year INT NOT NULL CHECK (year >= 1900 AND year <= EXTRACT(YEAR FROM CURRENT_DATE) + 1),
     fuel fuel_type NOT NULL,
     edition TEXT NOT NULL,
     traction traction_type NOT NULL,
-    condition condition_type NOT NULL,
     transmission transmission_type NOT NULL,
-    dealership_authorization BOOLEAN NOT NULL DEFAULT false,
-    insurance_authorization BOOLEAN NOT NULL DEFAULT false,
+    is_active BOOLEAN NOT NULL DEFAULT false,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
@@ -225,98 +224,104 @@ VALUES (
 );
 
 -- ======================================
--- FUNCIONES PARA LISTADO DE VEHICULOS V2
+-- FUNCIONES PARA LISTADO DE VEHICULOS V3
 -- ======================================
-
 CREATE OR REPLACE FUNCTION get_vehicles_by_filters(
-    p_brand_id BIGINT DEFAULT NULL,
-    p_model_id BIGINT DEFAULT NULL,
-    p_category_id BIGINT DEFAULT NULL,
-    p_condition condition_type DEFAULT NULL,
-    p_dealership_id BIGINT DEFAULT NULL,
-    p_year_min SMALLINT DEFAULT NULL,
-    p_year_max SMALLINT DEFAULT NULL,
-    p_mileage_min INTEGER DEFAULT NULL,
-    p_mileage_max INTEGER DEFAULT NULL,
-    p_transmission transmission_type DEFAULT NULL,
-    p_traction traction_type DEFAULT NULL,
-    p_page_size INT DEFAULT 20,
-    p_offset INT DEFAULT 0
+    p_brand_id BIGINT,
+    p_model_id BIGINT,
+    p_category_id BIGINT,
+    p_fuel fuel_type,
+    p_dealership_id BIGINT,
+    p_year_min SMALLINT,
+    p_year_max SMALLINT,
+    p_transmission transmission_type,
+    p_traction traction_type,
+    p_page_size INT,
+    p_offset INT,
+    p_years INT,
+    p_km_per_year INT,
+    p_client_type customer_type,
+    p_driver_score driver_score
 )
 RETURNS jsonb AS $$
 DECLARE
     result_json jsonb;
 BEGIN
-    -- ELIMINADO: Bloque que restringía el uso de ambos filtros a la vez.
-    -- La consulta WHERE ya maneja la lógica correctamente.
-
     WITH filtered_vehicles AS (
         SELECT
-            v.id,
+            v.*,
             b.name as brand_name,
-            m.name as model_name,
-            v.year,
-            v.edition,
-            v.image_urls,
-            v.fuel,
-            v.transmission,
-            v.mileage,
-            v.vehicle_price
+            m.name as model_name
         FROM vehicles v
         JOIN models m ON v.model_id = m.id
         JOIN brands b ON m.brand_id = b.id
+        -- ... resto de JOINs ...
         JOIN categories c ON v.category_id = c.id
         JOIN dealerships d ON v.dealership_id = d.id
         JOIN gps g ON v.gps_id = g.id
         JOIN (
-            SELECT vc.vehicle_id
-            FROM vehicle_colors vc
+            SELECT vc.vehicle_id FROM vehicle_colors vc
             JOIN colors col ON vc.color_id = col.id
             WHERE col.is_active = true
             GROUP BY vc.vehicle_id
             HAVING SUM(vc.stock_quantity) > 0
         ) AS available_stock ON v.id = available_stock.vehicle_id
         WHERE
-            v.dealership_authorization = true AND v.insurance_authorization = true
+            -- ... todas las condiciones WHERE ...
+            v.is_active = true
             AND d.is_active = true
             AND b.is_active = true
             AND m.is_active = true
             AND c.is_active = true
             AND g.is_active = true
-            AND (p_brand_id IS NULL OR b.id = p_brand_id) -- <-- Esta línea ya filtra por marca
-            AND (p_model_id IS NULL OR m.id = p_model_id) -- <-- Y esta refina por modelo
+            AND (p_brand_id IS NULL OR b.id = p_brand_id)
+            AND (p_model_id IS NULL OR m.id = p_model_id)
             AND (p_category_id IS NULL OR v.category_id IN (
                 SELECT id FROM categories WHERE id = p_category_id OR parent_id = p_category_id
             ))
-            AND (p_condition IS NULL OR v.condition = p_condition)
+            AND (p_fuel IS NULL OR v.fuel = p_fuel)
             AND (p_dealership_id IS NULL OR v.dealership_id = p_dealership_id)
             AND (p_year_min IS NULL OR v.year >= p_year_min)
             AND (p_year_max IS NULL OR v.year <= p_year_max)
-            AND (p_mileage_min IS NULL OR v.mileage >= p_mileage_min)
-            AND (p_mileage_max IS NULL OR v.mileage <= p_mileage_max)
             AND (p_transmission IS NULL OR v.transmission = p_transmission)
             AND (p_traction IS NULL OR v.traction = p_traction)
+    ),
+    paginated_vehicles AS (
+        SELECT * FROM filtered_vehicles
+        ORDER BY id
+        LIMIT p_page_size
+        OFFSET p_offset
     )
     SELECT jsonb_build_object(
         'total_count', (SELECT COUNT(*) FROM filtered_vehicles),
         'vehicles', COALESCE((
             SELECT jsonb_agg(
+                -- CAMBIO: La estructura del JSON final
                 jsonb_build_object(
-                    'id', fv.id,
-                    'nombre', fv.brand_name || ' ' || fv.model_name || ' ' || fv.edition || ' ' || fv.year,
-                    'image_urls', fv.image_urls,
-                    'combustible', fv.fuel,
-                    'transmision', fv.transmission,
-                    'kilometraje', fv.mileage,
-                    'precio', fv.vehicle_price
+                    'id', pv.id,
+                    'nombre', pv.brand_name || ' ' || pv.model_name || ' ' || pv.edition || ' ' || pv.year,
+                    'image_urls', pv.image_urls,
+                    'combustible', pv.fuel,
+                    'transmision', pv.transmission,
+                    'precio', pv.vehicle_price,
+                    'rental_simulation', sim_result.data
                 )
             )
-            FROM (
-                SELECT * FROM filtered_vehicles
-                ORDER BY id
-                LIMIT p_page_size
-                OFFSET p_offset
-            ) fv
+            FROM paginated_vehicles pv
+            -- CAMBIO: La llamada a la función ahora pasa los parámetros del vehículo
+            CROSS JOIN LATERAL
+                simulate_vehicle_rental(
+                    pv.vehicle_price,
+                    pv.annual_insurance_price,
+                    pv.low_mileage_rate_per_km,
+                    pv.medium_mileage_rate_per_km,
+                    pv.high_mileage_rate_per_km,
+                    p_years,
+                    p_km_per_year,
+                    p_client_type,
+                    p_driver_score
+                ) AS sim_result(data)
+
         ), '[]'::jsonb)
     )
     INTO result_json;
@@ -329,27 +334,25 @@ CREATE OR REPLACE FUNCTION get_available_filters(
     p_brand_id BIGINT DEFAULT NULL,
     p_model_id BIGINT DEFAULT NULL,
     p_category_id BIGINT DEFAULT NULL,
-    p_condition condition_type DEFAULT NULL,
+    p_fuel fuel_type DEFAULT NULL,
     p_dealership_id BIGINT DEFAULT NULL,
     p_year_min SMALLINT DEFAULT NULL,
     p_year_max SMALLINT DEFAULT NULL,
-    p_mileage_min INTEGER DEFAULT NULL,
-    p_mileage_max INTEGER DEFAULT NULL,
     p_transmission transmission_type DEFAULT NULL,
     p_traction traction_type DEFAULT NULL
 )
 RETURNS jsonb AS $$
 BEGIN
-    -- ELIMINADO: Bloque que restringía el uso de ambos filtros a la vez.
-
     RETURN (
         WITH
         base_vehicles AS (
             SELECT
-                v.mileage, v.year, v.condition, v.transmission, v.traction,
+                v.year, v.fuel, v.transmission, v.traction,
                 b.id as brand_id, b.name as brand_name,
                 m.id as model_id, m.name as model_name,
-                c.id as category_id, c.name as category_name,
+                c.id as category_id, c.name as category_name, 
+                c.parent_id as category_parent_id,
+                c.sort_order as category_sort_order,
                 d.id as dealership_id, d.name as dealership_name
             FROM vehicles AS v
             JOIN models AS m ON v.model_id = m.id
@@ -366,7 +369,7 @@ BEGIN
                 HAVING SUM(vc.stock_quantity) > 0
             ) AS available_stock ON v.id = available_stock.vehicle_id
             WHERE
-                v.dealership_authorization = true AND v.insurance_authorization = true
+                v.is_active = true
                 AND d.is_active = true
                 AND b.is_active = true
                 AND m.is_active = true
@@ -377,16 +380,13 @@ BEGIN
                 AND (p_category_id IS NULL OR v.category_id IN (
                     SELECT id FROM categories WHERE id = p_category_id OR parent_id = p_category_id
                 ))
-                AND (p_condition IS NULL OR v.condition = p_condition)
+                AND (p_fuel IS NULL OR v.fuel = p_fuel)
                 AND (p_dealership_id IS NULL OR d.id = p_dealership_id)
                 AND (p_year_min IS NULL OR v.year >= p_year_min)
                 AND (p_year_max IS NULL OR v.year <= p_year_max)
-                AND (p_mileage_min IS NULL OR v.mileage >= p_mileage_min)
-                AND (p_mileage_max IS NULL OR v.mileage <= p_mileage_max)
                 AND (p_transmission IS NULL OR v.transmission = p_transmission)
                 AND (p_traction IS NULL OR v.traction = p_traction)
         ),
-        -- La lógica de los CTEs para mostrar filtros disponibles ya funciona como se espera
         available_brands AS (
           SELECT jsonb_agg(jsonb_build_object('id', brand_id, 'name', brand_name, 'count', count)) as data
           FROM (SELECT brand_id, brand_name, COUNT(*) as count FROM base_vehicles GROUP BY brand_id, brand_name) s
@@ -397,21 +397,41 @@ BEGIN
           FROM (SELECT model_id, model_name, COUNT(*) as count FROM base_vehicles GROUP BY model_id, model_name) s
           WHERE p_brand_id IS NOT NULL AND p_model_id IS NULL
         ),
-        -- ... resto de CTEs sin cambios ...
-        available_categories AS (
-          SELECT jsonb_agg(jsonb_build_object('id', category_id, 'name', category_name, 'count', count)) as data
-          FROM (SELECT category_id, category_name, COUNT(*) as count FROM base_vehicles GROUP BY category_id, category_name) s
-          WHERE p_category_id IS NULL
+        available_parent_categories AS (
+            SELECT jsonb_agg(
+                jsonb_build_object('id', category_id, 'name', category_name, 'count', count)
+                ORDER BY category_sort_order
+            ) as data
+            FROM (
+                SELECT category_id, category_name, category_sort_order, COUNT(*) as count
+                FROM base_vehicles
+                WHERE category_parent_id IS NULL
+                GROUP BY category_id, category_name, category_sort_order
+            ) s
+            WHERE p_category_id IS NULL
+        ),
+        available_child_categories AS (
+            SELECT jsonb_agg(
+                jsonb_build_object('id', category_id, 'name', category_name, 'count', count)
+                ORDER BY category_sort_order
+            ) as data
+            FROM (
+                SELECT category_id, category_name, category_sort_order, COUNT(*) as count
+                FROM base_vehicles
+                WHERE category_parent_id = p_category_id
+                GROUP BY category_id, category_name, category_sort_order
+            ) s
+            WHERE p_category_id IS NOT NULL AND EXISTS (SELECT 1 FROM categories WHERE id = p_category_id AND parent_id IS NULL)
         ),
         available_dealerships AS (
           SELECT jsonb_agg(jsonb_build_object('id', dealership_id, 'name', dealership_name, 'count', count)) as data
           FROM (SELECT dealership_id, dealership_name, COUNT(*) as count FROM base_vehicles GROUP BY dealership_id, dealership_name) s
           WHERE p_dealership_id IS NULL
         ),
-        available_conditions AS (
-          SELECT jsonb_agg(jsonb_build_object('name', condition, 'count', count)) as data
-          FROM (SELECT condition, COUNT(*) as count FROM base_vehicles GROUP BY condition) s
-          WHERE p_condition IS NULL
+        available_fuels AS (
+          SELECT jsonb_agg(jsonb_build_object('name', fuel, 'count', count)) as data
+          FROM (SELECT fuel, COUNT(*) as count FROM base_vehicles GROUP BY fuel) s
+          WHERE p_fuel IS NULL
         ),
         available_transmissions AS (
           SELECT jsonb_agg(jsonb_build_object('name', transmission, 'count', count)) as data
@@ -435,33 +455,175 @@ BEGIN
               FROM base_vehicles
             ) s GROUP BY year_range
           ) s WHERE p_year_min IS NULL AND p_year_max IS NULL
-        ),
-        mileage_ranges AS (
-          SELECT jsonb_agg(jsonb_build_object('range', mileage_range, 'min', min_km, 'max', max_km, 'count', count) ORDER BY min_km ASC) as data
-          FROM (
-            SELECT mileage_range, MIN(mileage) as min_km, MAX(mileage) as max_km, COUNT(*) as count FROM (
-              SELECT *, CASE
-                  WHEN mileage = 0 THEN '0 Kms'
-                  WHEN mileage BETWEEN 1 AND 15000 THEN 'Hasta 15,000 Kms'
-                  WHEN mileage BETWEEN 15001 AND 30000 THEN '15,001 a 30,000 Kms'
-                  WHEN mileage BETWEEN 30001 AND 50000 THEN '30,001 a 50,000 Kms'
-                  WHEN mileage BETWEEN 50001 AND 100000 THEN '50,001 a 100,000 Kms'
-                  ELSE '100,001 Kms a más' END as mileage_range
-              FROM base_vehicles
-            ) s GROUP BY mileage_range
-          ) s WHERE p_mileage_min IS NULL AND p_mileage_max IS NULL
         )
         SELECT jsonb_strip_nulls(jsonb_build_object(
             'brands', (SELECT data FROM available_brands),
             'models', (SELECT data FROM available_models),
-            'categories', (SELECT data FROM available_categories),
+            'categories', COALESCE(
+                (SELECT data FROM available_child_categories),
+                (SELECT data FROM available_parent_categories)
+            ),
             'dealerships', (SELECT data FROM available_dealerships),
-            'conditions', (SELECT data FROM available_conditions),
+            'fuels', (SELECT data FROM available_fuels),
             'transmissions', (SELECT data FROM available_transmissions),
             'tractions', (SELECT data FROM available_tractions),
-            'year_ranges', (SELECT data FROM year_ranges),
-            'mileage_ranges', (SELECT data FROM mileage_ranges)
+            'year_ranges', (SELECT data FROM year_ranges)
         ))
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+-- ===================================================
+-- VARIABLES DE ENTORNO Y MATRIZ DE MARGEN DE GANANCIA
+-- ===================================================
+CREATE TABLE environment_variables (
+    id INT PRIMARY KEY DEFAULT 1,
+    annual_vehicle_tax_pct NUMERIC NOT NULL,
+    vehicle_age_threshold NUMERIC NOT NULL,
+
+    rtv_trucks_and_buses NUMERIC NOT NULL,
+    rtv_cars NUMERIC NOT NULL,
+    rtv_motorcycles NUMERIC NOT NULL,
+
+    soat_trucks_and_buses NUMERIC NOT NULL,
+    soat_cars NUMERIC NOT NULL,
+    soat_taxis NUMERIC NOT NULL,
+    soat_motorcycles NUMERIC NOT NULL,
+
+    two_year_devaluation_pct NUMERIC NOT NULL,
+    three_years_devaluation_pct NUMERIC NOT NULL,
+    four_years_devaluation_pct NUMERIC NOT NULL,
+    five_years_devaluation_pct NUMERIC NOT NULL,
+
+    financing_rate_pct NUMERIC NOT NULL,
+    CONSTRAINT singleton_check CHECK (id = 1)
+);
+
+CREATE TYPE driver_score AS ENUM ('good', 'bad');
+CREATE TYPE customer_type AS ENUM ('app_driver', 'mype', 'corporate');
+
+CREATE TABLE profit_margin_matrix (
+    id INT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    customer customer_type NOT NULL,
+    score driver_score NOT NULL,
+    margin_pct NUMERIC(5,2) NOT NULL
+);
+
+INSERT INTO profit_margin_matrix (customer, score, margin_pct) VALUES
+('app_driver', 'good', 12.00),
+('app_driver', 'bad',  15.00),
+('mype',       'good', 10.00),
+('mype',       'bad',  12.00),
+('corporate',  'good', 8.00),
+('corporate',  'bad',  10.00);
+
+-- ======================================
+-- FUNCION PARA SIMULAR RENTA DE VEHICULOS
+-- ======================================
+CREATE OR REPLACE FUNCTION simulate_vehicle_rental(
+    p_vehicle_price NUMERIC,
+    p_annual_insurance_price NUMERIC,
+    p_low_mileage_rate_per_km NUMERIC,
+    p_medium_mileage_rate_per_km NUMERIC,
+    p_high_mileage_rate_per_km NUMERIC,
+    p_years INT,
+    p_km_per_year INT,
+    p_client_type customer_type,
+    p_driver_score driver_score
+) RETURNS JSONB AS $$
+DECLARE
+    e environment_variables%ROWTYPE;
+    n_months INT := p_years * 12;
+
+    -- cálculos
+    devaluacion_pct NUMERIC;
+    valor_residual NUMERIC;
+    cuota_vehiculo NUMERIC;
+    seguro_mensual NUMERIC;
+    impuesto_mensual NUMERIC;
+    rtv_mensual NUMERIC;
+    soat_mensual NUMERIC;
+    mantenimiento_total NUMERIC := 0;
+    mantenimiento_mensual NUMERIC := 0;
+    subtotal NUMERIC;
+    ganancia NUMERIC;
+    total_final NUMERIC;
+    km_acumulado INT := 0;
+    costo NUMERIC;
+    margin_pct NUMERIC;
+BEGIN
+    -- 1. traer datos (solo de environment_variables)
+    SELECT * INTO e FROM environment_variables WHERE id = 1;
+
+    -- 2. devaluación según años
+    devaluacion_pct := CASE p_years
+        WHEN 2 THEN e.two_year_devaluation_pct
+        WHEN 3 THEN e.three_years_devaluation_pct
+        WHEN 4 THEN e.four_years_devaluation_pct
+        WHEN 5 THEN e.five_years_devaluation_pct
+        ELSE 0
+    END;
+
+    -- 3. valor residual
+    valor_residual := p_vehicle_price * (1 - (devaluacion_pct / 100.0));
+
+    -- 4. cuota vehículo (PMT)
+    cuota_vehiculo := ( ( ((e.financing_rate_pct / 100.0) / 12) * valor_residual ) /
+                        (1 - POWER(1 + ((e.financing_rate_pct / 100.0) / 12), -n_months)) );
+
+    -- 5. seguro
+    seguro_mensual := p_annual_insurance_price / 12;
+
+    -- 6. impuesto vehicular
+    impuesto_mensual := (p_vehicle_price * (e.annual_vehicle_tax_pct / 100.0))
+                          * e.vehicle_age_threshold / n_months;
+
+    -- 7. RTV
+    rtv_mensual := e.rtv_cars * GREATEST(p_years - e.vehicle_age_threshold, 0) / n_months;
+
+    -- 8. SOAT (asumimos siempre carros)
+    soat_mensual := e.soat_cars / 12;
+
+    -- 9. mantenimiento
+    FOR i IN 1..p_years LOOP
+        km_acumulado := i * p_km_per_year;
+        IF km_acumulado <= 15000 THEN
+            costo := p_km_per_year * p_low_mileage_rate_per_km;
+        ELSIF km_acumulado <= 30000 THEN
+            costo := p_km_per_year * p_medium_mileage_rate_per_km;
+        ELSE
+            costo := p_km_per_year * p_high_mileage_rate_per_km;
+        END IF;
+        mantenimiento_total := mantenimiento_total + costo;
+    END LOOP;
+    mantenimiento_mensual := mantenimiento_total / n_months;
+
+    -- 10. subtotal
+    subtotal := cuota_vehiculo + seguro_mensual + impuesto_mensual +
+                rtv_mensual + soat_mensual + mantenimiento_mensual;
+
+    -- 11. buscar margen
+    SELECT margin_pct INTO margin_pct
+    FROM profit_margin_matrix
+    WHERE customer = p_client_type AND score = p_driver_score;
+
+    ganancia := subtotal * (margin_pct / 100.0);
+
+    -- 12. cuota final
+    total_final := subtotal + ganancia;
+
+    -- salida
+    RETURN jsonb_build_object(
+        'devaluacion_pct', devaluacion_pct,
+        'valor_residual', valor_residual,
+        'seguro_mensual', seguro_mensual,
+        'impuesto_mensual', impuesto_mensual,
+        'rtv_mensual', rtv_mensual,
+        'soat_mensual', soat_mensual,
+        'mantenimiento_mensual', mantenimiento_mensual,
+        'subtotal_mensual', subtotal,
+        'ganancia_mensual', ganancia,
+        'cuota_final_mensual', total_final
     );
 END;
 $$ LANGUAGE plpgsql;

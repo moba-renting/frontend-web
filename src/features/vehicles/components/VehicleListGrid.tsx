@@ -3,20 +3,10 @@ import { useNavigate } from "react-router-dom";
 import { MdChevronLeft, MdChevronRight } from "react-icons/md";
 import { ArrowLeftRight, X } from "lucide-react";
 import { toast } from "react-hot-toast";
-import type { Vehicle, Filters } from "../types";
+import type { VehicleListGridProps } from "../types";
 import CompareButton from "./CompareButton";
 
-interface VehicleListProps {
-  vehicles: Vehicle[];
-  loadingVehicles: boolean;
-  currentPage: number;
-  totalPages: number;
-  filters: Filters;
-  onPageChange: (page: number) => void;
-  onClearFilters: () => void;
-}
-
-const VehicleList: React.FC<VehicleListProps> = ({
+const VehicleListGrid: React.FC<VehicleListGridProps> = ({
   vehicles,
   loadingVehicles,
   currentPage,
@@ -69,11 +59,6 @@ const VehicleList: React.FC<VehicleListProps> = ({
   const selectedVehicle = selectedVehicleId 
     ? vehicles.find(v => v.id.toString() === selectedVehicleId)
     : null;
-
-  // Formatear precio
-  const formatPrice = (price: number) => {
-    return `S/ ${price.toLocaleString()}`;
-  };
 
   // Navegar a la página de detalle
   const handleViewDetails = (vehicleId: number) => {
@@ -168,14 +153,29 @@ const VehicleList: React.FC<VehicleListProps> = ({
               <h3 className="font-bold text-lg text-gray-900 mb-2">
                 {vehicle.nombre}
               </h3>
-              <div className="space-y-1 text-sm text-gray-600 mb-3">
-                <p>{vehicle.combustible} • {vehicle.transmision}</p>
-                <p>{vehicle.kilometraje.toLocaleString()} km</p>
-              </div>
+              {/* Simulación de renta */}
+              {vehicle.rental_simulation && (
+                <div className="bg-gradient-to-r from-blue-50 to-green-50 rounded-lg p-3 mb-3 border border-blue-100">
+                  <div className="text-center">
+                    <p className="text-xs text-gray-600 mb-1">Cuota mensual estimada</p>
+                    <p className="text-xl font-bold text-blue-600">
+                      S/ {vehicle.rental_simulation.cuota_final_mensual.toLocaleString()}
+                    </p>
+                    <div className="flex justify-between text-xs text-gray-500 mt-2">
+                      <span>Subtotal: S/ {vehicle.rental_simulation.subtotal_mensual.toLocaleString()}</span>
+                      <span>Margen: S/ {vehicle.rental_simulation.ganancia_mensual.toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-green-600">
-                  {formatPrice(vehicle.precio)}
-                </span>
+                <div className="text-sm text-gray-600">
+                  <p className="text-xs">Precio del vehículo</p>
+                  <p className="text-lg font-bold text-gray-800">
+                    S/ {vehicle.rental_simulation?.valor_residual?.toLocaleString() || 'N/A'}
+                  </p>
+                </div>
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
@@ -219,4 +219,4 @@ const VehicleList: React.FC<VehicleListProps> = ({
   );
 };
 
-export default VehicleList;
+export default VehicleListGrid;
